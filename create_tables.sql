@@ -1,5 +1,5 @@
 Create database library_app;
-
+-- drop database library_app; 
 use library_app;
 
 create table book (
@@ -7,20 +7,20 @@ create table book (
     title VARCHAR(150) NOT NULL,
 	year INT NOT NULL,
 	publisher VARCHAR(100) NOT NULL,
-	date_added TIMESTAMP NOT NULL DEFAULT NOW()
+	date_added DATETIME NOT NULL DEFAULT NOW()
 );
 
 create table author (
-	id INT PRIMARY KEY AUTO_INCREMENT,
-	firstName VARCHAR(50) NOT NULL,
-	lastName VARCHAR(50) NOT NULL
+	id BIGINT PRIMARY KEY AUTO_INCREMENT,
+	first_name VARCHAR(50) NOT NULL,
+	last_name VARCHAR(50) NOT NULL
 );
 create table genre (
-	id INT PRIMARY KEY AUTO_INCREMENT,
+	id BIGINT PRIMARY KEY AUTO_INCREMENT,
 	`name` VARCHAR(50) NOT NULL
 );
 create table user(
-	id INT PRIMARY KEY AUTO_INCREMENT,
+	id BIGINT PRIMARY KEY AUTO_INCREMENT,
 	username VARCHAR(50) NOT NULL UNIQUE,
 	first_name VARCHAR(50) NOT NULL,
 	last_name VARCHAR(50) NOT NULL,
@@ -31,7 +31,7 @@ create table user(
     );
 create table book_author(
 	isbn VARCHAR(17) NOT NULL,
-    author_id INT NOT NULL,
+    author_id BIGINT NOT NULL,
     CONSTRAINT pk_book_author
     primary key(isbn,author_id),
     constraint fk_book_author_book
@@ -43,7 +43,7 @@ create table book_author(
     );
 create table book_genre(
 	isbn VARCHAR(17) NOT NULL,
-    genre_id INT NOT NULL,
+    genre_id BIGINT NOT NULL,
     CONSTRAINT pk_book_genre
     primary key(isbn,genre_id),
     constraint fk_book_genre_book
