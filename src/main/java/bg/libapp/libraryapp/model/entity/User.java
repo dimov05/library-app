@@ -13,32 +13,32 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private long id;
-    @Column(name = "username",length = 50,nullable = false,unique = true)
+    @Column(name = "username", length = 50, nullable = false, unique = true)
     private String username;
-    @Column(name = "first_name",length = 50,nullable = false)
+    @Column(name = "first_name", length = 50, nullable = false)
     private String firstName;
-    @Column(name = "last_name",length = 50,nullable = false)
+    @Column(name = "last_name", length = 50, nullable = false)
     private String lastName;
-    @Column(name = "display_name",length = 50,nullable = false)
+    @Column(name = "display_name", length = 50, nullable = false)
     private String displayName;
-    @Column(name = "password",nullable = false)
+    @Column(name = "password", nullable = false)
     private String password;
-    @Column(name = "date_of_birth",nullable = false)
+    @Column(name = "date_of_birth", nullable = false)
     private LocalDate dateOfBirth;
-    @Column(name = "role",nullable = false)
+    @Column(name = "role", nullable = false)
     private int role;
 
     public User() {
     }
 
-    public User(String username, String firstName, String lastName, String displayName, String password, LocalDate dateOfBirth, int role) {
+    public User(String username, String firstName, String lastName, String displayName, String password, LocalDate dateOfBirth, String role) {
         this.username = username;
         this.firstName = firstName;
         this.lastName = lastName;
         this.displayName = displayName;
         this.password = password;
         this.dateOfBirth = dateOfBirth;
-        this.role = role;
+        this.role = Role.valueOf(role).ordinal();
     }
 
     public User(long id, String username, String firstName, String lastName, String displayName, String password, LocalDate dateOfBirth, int role) {
