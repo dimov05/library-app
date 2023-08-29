@@ -1,5 +1,5 @@
 Create database library_app;
--- drop database library_app; 
+drop database library_app; 
 use library_app;
 
 create table book (
@@ -7,7 +7,7 @@ create table book (
     title VARCHAR(150) NOT NULL,
 	year INT NOT NULL,
 	publisher VARCHAR(100) NOT NULL,
-	date_added DATETIME NOT NULL DEFAULT NOW()
+	date_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
 create table author (

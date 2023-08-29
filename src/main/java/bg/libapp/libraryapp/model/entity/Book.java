@@ -18,7 +18,7 @@ public class Book {
     private int year;
     @Column(name = "publisher", length = 100, nullable = false)
     private String publisher;
-    @Column(name = "date_added", nullable = false)
+    @Column(name = "date_added", nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime dateAdded;
     @ManyToMany
     @JoinTable(name = "book_genre",
