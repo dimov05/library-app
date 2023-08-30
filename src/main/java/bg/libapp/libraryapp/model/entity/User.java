@@ -2,7 +2,6 @@ package bg.libapp.libraryapp.model.entity;
 
 import bg.libapp.libraryapp.model.enums.Role;
 import jakarta.persistence.*;
-import org.yaml.snakeyaml.events.Event;
 
 import java.time.LocalDate;
 
