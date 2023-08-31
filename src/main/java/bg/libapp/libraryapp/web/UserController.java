@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,9 +29,11 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-//    @PreAuthorize("authentication.name == @userService.getUsernameById(#id)")
+    @PreAuthorize("authentication.name == @userService.getUsernameById(#id)")
     public ResponseEntity<UserViewDTO> viewUserById(@PathVariable("id") Long id) {
         UserViewDTO userViewDTO = userService.findViewDTOById(id);
+        String principal = SecurityContextHolder.getContext().getAuthentication().getName();
+        System.out.println(principal);
         if (userViewDTO != null) {
             return new ResponseEntity<>(userViewDTO, HttpStatus.OK);
         } else {
@@ -46,8 +49,8 @@ public class UserController {
     }
 
     @PutMapping("/edit/{id}")
-//    @userService.getUsernameById(#id) == authentication.name
-    @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_MODERATOR')")
+//
+    @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_MODERATOR') or @userService.getUsernameById(#id) == authentication.name")
     public ResponseEntity<UserViewDTO> editUser(@Valid @RequestBody UserEditDTO userEditDTO, @PathVariable("id") long id) {
         this.userService.editUserAndSave(userEditDTO, id);
         UserViewDTO editedUser = this.userService.findViewDTOById(id);
