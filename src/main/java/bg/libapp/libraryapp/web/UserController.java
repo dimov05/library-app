@@ -49,7 +49,6 @@ public class UserController {
     }
 
     @PutMapping("/edit/{id}")
-//
     @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_MODERATOR') or @userService.getUsernameById(#id) == authentication.name")
     public ResponseEntity<UserViewDTO> editUser(@Valid @RequestBody UserEditDTO userEditDTO, @PathVariable("id") long id) {
         this.userService.editUserAndSave(userEditDTO, id);
