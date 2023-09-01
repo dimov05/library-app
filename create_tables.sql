@@ -41,7 +41,7 @@ create table book_author(
     foreign key (author_id)
     references author(id)
     );
-create table book_genre(
+create table boouserk_genre(
 	isbn VARCHAR(17) NOT NULL,
     genre_id BIGINT NOT NULL,
     CONSTRAINT pk_book_genre

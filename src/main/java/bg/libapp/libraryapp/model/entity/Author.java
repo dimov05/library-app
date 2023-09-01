@@ -17,7 +17,7 @@ public class Author {
     @Column(name = "last_name",length = 50,nullable = false)
     private String lastName;
 
-    @ManyToMany(mappedBy = "authors")
+    @ManyToMany(mappedBy = "authors",cascade = CascadeType.PERSIST)
     private Set<Book> books;
 
     public Author() {
@@ -68,6 +68,15 @@ public class Author {
             this.books = new HashSet<>();
         }
         this.books.add(book);
+    }
+
+    public Set<Book> getBooks() {
+        return books;
+    }
+
+    public Author setBooks(Set<Book> books) {
+        this.books = books;
+        return this;
     }
 
     public void removeBook(Book book) {

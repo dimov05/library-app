@@ -1,6 +1,7 @@
 package bg.libapp.libraryapp.web;
 
 import bg.libapp.libraryapp.model.dto.user.UserEditDTO;
+import bg.libapp.libraryapp.model.dto.user.UserPasswordChangeDTO;
 import bg.libapp.libraryapp.model.dto.user.UserRoleChangeDTO;
 import bg.libapp.libraryapp.model.dto.user.UserViewDTO;
 import bg.libapp.libraryapp.service.UserService;
@@ -10,7 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,19 +18,17 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
-    private PasswordEncoder passwordEncoder;
 
-    private UserService userService;
+    private final UserService userService;
 
     @Autowired
-    public UserController(PasswordEncoder passwordEncoder, UserService userService) {
-        this.passwordEncoder = passwordEncoder;
+    public UserController(UserService userService) {
         this.userService = userService;
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("authentication.name == @userService.getUsernameById(#id)")
-    public ResponseEntity<UserViewDTO> viewUserById(@PathVariable("id") Long id) {
+    public ResponseEntity<UserViewDTO> getUserById(@PathVariable("id") Long id) {
         UserViewDTO userViewDTO = userService.findViewDTOById(id);
         String principal = SecurityContextHolder.getContext().getAuthentication().getName();
         System.out.println(principal);
@@ -48,6 +46,7 @@ public class UserController {
         return new ResponseEntity<>(users, HttpStatus.OK);
     }
 
+
     @PutMapping("/edit/{id}")
     @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_MODERATOR') or @userService.getUsernameById(#id) == authentication.name")
     public ResponseEntity<UserViewDTO> editUser(@Valid @RequestBody UserEditDTO userEditDTO, @PathVariable("id") long id) {
@@ -60,6 +59,14 @@ public class UserController {
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<UserViewDTO> changeRole(@Valid @RequestBody UserRoleChangeDTO userRoleChangeDTO, @PathVariable("id") long id) {
         this.userService.changeRoleAndSave(userRoleChangeDTO, id);
+        UserViewDTO editedUser = this.userService.findViewDTOById(id);
+        return new ResponseEntity<>(editedUser, HttpStatus.OK);
+    }
+
+    @PutMapping("/change-password/{id}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN') or @userService.getUsernameById(#id) == authentication.name")
+    public ResponseEntity<UserViewDTO> changePassword(@Valid @RequestBody UserPasswordChangeDTO userPasswordChangeDTO, @PathVariable("id") long id) {
+        this.userService.changePasswordAndSave(userPasswordChangeDTO, id);
         UserViewDTO editedUser = this.userService.findViewDTOById(id);
         return new ResponseEntity<>(editedUser, HttpStatus.OK);
     }

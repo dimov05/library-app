@@ -2,6 +2,7 @@ package bg.libapp.libraryapp.web;
 
 import bg.libapp.libraryapp.model.dto.user.UserLoginDTO;
 import bg.libapp.libraryapp.model.dto.user.UserRegisterDTO;
+import bg.libapp.libraryapp.model.dto.user.UserViewDTO;
 import bg.libapp.libraryapp.model.entity.User;
 import bg.libapp.libraryapp.model.mappers.UserMapper;
 import bg.libapp.libraryapp.service.UserService;
@@ -54,9 +55,16 @@ public class AuthController {
         }
         User userToSave = UserMapper.mapUserFromUserRegisterDTO(userRegisterDTO);
         userToSave.setPassword(passwordEncoder.encode(userRegisterDTO.getPassword()));
-
         userService.save(userToSave);
+        UserViewDTO user = UserMapper.mapViewDTOFromUser(userToSave);
 
-        return new ResponseEntity<>(userToSave, HttpStatus.CREATED);
+        return new ResponseEntity<>(user, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> logoutUser() {
+        this.userService.logout();
+
+        return new ResponseEntity<>("Successfully logged out!", HttpStatus.OK);
     }
 }

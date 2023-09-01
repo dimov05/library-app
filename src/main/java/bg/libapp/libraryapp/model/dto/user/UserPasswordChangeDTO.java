@@ -5,9 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import org.hibernate.validator.constraints.Length;
 
-@FieldMatch(first = "password", second = "confirmPassword", message = "Passwords must match")
+@FieldMatch(first = "newPassword", second = "confirmNewPassword", message = "Passwords must match")
 public class UserPasswordChangeDTO {
-    private String username;
     @NotBlank(message = "Password can not be empty")
     @Length(min = 6, max = 100, message = "Password should be at least 6 symbols")
     private String oldPassword;
@@ -22,9 +21,6 @@ public class UserPasswordChangeDTO {
     public UserPasswordChangeDTO() {
     }
 
-    public String getUsername() {
-        return username;
-    }
 
     public String getOldPassword() {
         return oldPassword;
