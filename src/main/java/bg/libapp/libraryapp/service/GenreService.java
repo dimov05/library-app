@@ -1,6 +1,6 @@
 package bg.libapp.libraryapp.service;
 
-import bg.libapp.libraryapp.model.dto.genre.GenreViewDTO;
+import bg.libapp.libraryapp.model.dto.genre.GenreDTO;
 import bg.libapp.libraryapp.model.mappers.GenreMapper;
 import bg.libapp.libraryapp.repository.GenreRepository;
 import org.springframework.stereotype.Service;
@@ -18,10 +18,10 @@ public class GenreService {
         this.genreMapper = genreMapper;
     }
 
-    public Set<GenreViewDTO> getAllGenresViewDTO() {
-        return this.genreRepository.findAll()
+    public Set<GenreDTO> getAllGenresViewDTO() {
+        return genreRepository.findAll()
                 .stream()
-                .map(genreMapper::mapGenreViewDTOFromGenre)
+                .map(genreMapper::toGenreDTO)
                 .collect(Collectors.toSet());
     }
 }

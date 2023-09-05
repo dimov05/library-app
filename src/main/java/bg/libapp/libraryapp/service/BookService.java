@@ -4,8 +4,8 @@ import bg.libapp.libraryapp.exceptions.AuthorNotFoundException;
 import bg.libapp.libraryapp.exceptions.BookAlreadyAddedException;
 import bg.libapp.libraryapp.exceptions.BookNotFoundException;
 import bg.libapp.libraryapp.exceptions.GenreNotFoundException;
-import bg.libapp.libraryapp.model.dto.book.BookAddDTO;
-import bg.libapp.libraryapp.model.dto.book.BookViewDTO;
+import bg.libapp.libraryapp.model.dto.book.BookAddRequest;
+import bg.libapp.libraryapp.model.dto.book.BookExtendedDTO;
 import bg.libapp.libraryapp.model.entity.Author;
 import bg.libapp.libraryapp.model.entity.Book;
 import bg.libapp.libraryapp.model.entity.Genre;
@@ -34,49 +34,49 @@ public class BookService {
         this.genreRepository = genreRepository;
     }
 
-    public void saveNewBook(BookAddDTO bookAddDTO) {
-        Book book = this.bookRepository.findByIsbn(bookAddDTO.getIsbn());
+    public void saveNewBook(BookAddRequest bookAddRequest) {
+        Book book = bookRepository.findByIsbn(bookAddRequest.getIsbn());
         if (book != null) {
-            throw new BookAlreadyAddedException("Book with this isbn: " + bookAddDTO.getIsbn() + ",is already added!");
+            throw new BookAlreadyAddedException(bookAddRequest.getIsbn());
         }
-        book = bookMapper.mapBookFromBookAddDTO(bookAddDTO);
-        this.bookRepository.saveAndFlush(book);
+        book = bookMapper.toBook(bookAddRequest);
+        bookRepository.saveAndFlush(book);
     }
 
-    public BookViewDTO findBookByIsbn(String isbn) {
-        Book book = this.bookRepository.findByIsbn(isbn);
+    public BookExtendedDTO findBookByIsbn(String isbn) {
+        Book book = bookRepository.findByIsbn(isbn);
         if (book == null) {
-            throw new BookNotFoundException("Book with this isbn is not present in library!");
+            throw new BookNotFoundException(isbn);
         }
-        return bookMapper.mapBookViewDTOFromBook(book);
+        return bookMapper.toBookExtendedDTO(book);
     }
 
-    public Set<BookViewDTO> getAllBooks() {
-        return this.bookRepository.findAll()
+    public Set<BookExtendedDTO> getAllBooks() {
+        return bookRepository.findAll()
                 .stream()
-                .map(bookMapper::mapBookViewDTOFromBook)
+                .map(bookMapper::toBookExtendedDTO)
                 .collect(Collectors.toSet());
     }
 
-    public Set<BookViewDTO> getAllBooksByAuthorFirstAndLastName(String firstName, String lastName) {
-        Author author = this.authorRepository.findAuthorByFirstNameAndLastName(firstName, lastName);
+    public Set<BookExtendedDTO> getAllBooksByAuthorFirstAndLastName(String firstName, String lastName) {
+        Author author = authorRepository.findAuthorByFirstNameAndLastName(firstName, lastName);
         if (author == null) {
-            throw new AuthorNotFoundException("Author with this first and last name is not present in library!");
+            throw new AuthorNotFoundException(firstName, lastName);
         }
-        return this.bookRepository.findAllByAuthorsContaining(author)
+        return bookRepository.findAllByAuthorsContaining(author)
                 .stream()
-                .map(bookMapper::mapBookViewDTOFromBook)
+                .map(bookMapper::toBookExtendedDTO)
                 .collect(Collectors.toSet());
     }
 
-    public Set<BookViewDTO> getAllBooksByGenre(String genre) {
-        Genre genreToCheck = this.genreRepository.findByName(genre);
+    public Set<BookExtendedDTO> getAllBooksByGenre(String genre) {
+        Genre genreToCheck = genreRepository.findByName(genre);
         if (genreToCheck == null) {
-            throw new GenreNotFoundException("Genre with this name is not present in the library!");
+            throw new GenreNotFoundException(genre);
         }
-        return this.bookRepository.findBookByGenresContaining(genreToCheck)
+        return bookRepository.findBookByGenresContaining(genreToCheck)
                 .stream()
-                .map(bookMapper::mapBookViewDTOFromBook)
+                .map(bookMapper::toBookExtendedDTO)
                 .collect(Collectors.toSet());
     }
 }

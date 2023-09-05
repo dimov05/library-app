@@ -1,6 +1,6 @@
 package bg.libapp.libraryapp.web;
 
-import bg.libapp.libraryapp.model.dto.genre.GenreViewDTO;
+import bg.libapp.libraryapp.model.dto.genre.GenreDTO;
 import bg.libapp.libraryapp.service.GenreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -24,8 +24,8 @@ public class GenreController {
 
     @GetMapping("")
     @PreAuthorize("hasAnyAuthority('ROLE_USER','ROLE_MODERATOR','ROLE_ADMIN')")
-    public ResponseEntity<Set<GenreViewDTO>> getAllGenres() {
-        Set<GenreViewDTO> genres = this.genreService.getAllGenresViewDTO();
+    public ResponseEntity<Set<GenreDTO>> getAllGenres() {
+        Set<GenreDTO> genres = genreService.getAllGenresViewDTO();
         return new ResponseEntity<>(genres, HttpStatus.OK);
     }
 }

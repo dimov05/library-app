@@ -1,4 +1,4 @@
-package bg.libapp.libraryapp.web;
+package bg.libapp.libraryapp.exceptions;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +12,7 @@ import java.util.Map;
 
 @ControllerAdvice
 public class CustomExceptionHandler {
-    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ExceptionHandler({MethodArgumentNotValidException.class})
     public ResponseEntity<Map<String,String>> handleValidationExceptions(
             MethodArgumentNotValidException ex) {
 

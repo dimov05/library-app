@@ -1,9 +1,9 @@
 package bg.libapp.libraryapp.model.mappers;
 
-import bg.libapp.libraryapp.model.dto.author.AuthorBookViewDTO;
-import bg.libapp.libraryapp.model.dto.book.BookAddDTO;
-import bg.libapp.libraryapp.model.dto.book.BookAuthorViewDTO;
-import bg.libapp.libraryapp.model.dto.book.BookViewDTO;
+import bg.libapp.libraryapp.model.dto.author.AuthorRequest;
+import bg.libapp.libraryapp.model.dto.book.BookAddRequest;
+import bg.libapp.libraryapp.model.dto.book.BookDTO;
+import bg.libapp.libraryapp.model.dto.book.BookExtendedDTO;
 import bg.libapp.libraryapp.model.entity.Author;
 import bg.libapp.libraryapp.model.entity.Book;
 import bg.libapp.libraryapp.repository.AuthorRepository;
@@ -29,40 +29,37 @@ public class BookMapper {
         this.genreMapper = genreMapper;
     }
 
-    public BookAuthorViewDTO mapBookAuthorViewDTOFromBook(Book book) {
-        return new BookAuthorViewDTO()
+    public BookDTO toBookDTO(Book book) {
+        return new BookDTO()
                 .setIsbn(book.getIsbn())
                 .setYear(book.getYear())
                 .setTitle(book.getTitle())
                 .setPublisher(book.getPublisher())
                 .setGenres(book.getGenres()
                         .stream()
-                        .map(genreMapper::mapGenreBookViewDTOFromGenre)
+                        .map(genreMapper::toGenreDTO)
                         .collect(Collectors.toSet()));
     }
 
-    public Book mapBookFromBookAddDTO(BookAddDTO bookAddDTO) {
+    public Book toBook(BookAddRequest bookAddRequest) {
         return new Book()
-                .setIsbn(bookAddDTO.getIsbn())
-                .setTitle(bookAddDTO.getTitle())
-                .setYear(bookAddDTO.getYear())
+                .setIsbn(bookAddRequest.getIsbn())
+                .setTitle(bookAddRequest.getTitle())
+                .setYear(bookAddRequest.getYear())
                 .setDateAdded(LocalDateTime.now())
-                .setPublisher(bookAddDTO.getPublisher())
-                .setGenres(bookAddDTO.getGenres()
+                .setPublisher(bookAddRequest.getPublisher())
+                .setGenres(bookAddRequest.getGenres()
                         .stream()
                         .map(genre -> this.genreRepository.findByName(genre.getName()))
                         .collect(Collectors.toSet()))
-                .setAuthors(bookAddDTO.getAuthors()
+                .setAuthors(bookAddRequest.getAuthors()
                         .stream()
-                        .map(author -> {
-                            saveAuthorIfNotPresent(author);
-                            return authorRepository.findAuthorByFirstNameAndLastName(author.getFirstName(), author.getLastName());
-                        })
+                        .map(this::findOrCreate)
                         .collect(Collectors.toSet()));
     }
 
-    public BookViewDTO mapBookViewDTOFromBook(Book book) {
-        return new BookViewDTO()
+    public BookExtendedDTO toBookExtendedDTO(Book book) {
+        return new BookExtendedDTO()
                 .setIsbn(book.getIsbn())
                 .setTitle(book.getTitle())
                 .setPublisher(book.getPublisher())
@@ -70,19 +67,20 @@ public class BookMapper {
                 .setDateAdded(book.getDateAdded())
                 .setGenres(book.getGenres()
                         .stream()
-                        .map(genreMapper::mapGenreBookViewDTOFromGenre)
+                        .map(genreMapper::toGenreDTO)
                         .collect(Collectors.toSet()))
                 .setAuthors(book.getAuthors()
                         .stream()
-                        .map(authorMapper::mapAuthorBookViewDTOFromAuthor)
+                        .map(authorMapper::toAuthorDTO)
                         .collect(Collectors.toSet()));
     }
 
-    private void saveAuthorIfNotPresent(AuthorBookViewDTO author) {
-        if (this.authorRepository.findAuthorByFirstNameAndLastName(author.getFirstName(), author.getLastName()) == null) {
-            this.authorRepository.saveAndFlush(new Author()
-                    .setFirstName(author.getFirstName())
-                    .setLastName(author.getLastName()));
-        }
+    private Author findOrCreate(AuthorRequest author) {
+        Author searchedAuthor = this.authorRepository.findAuthorByFirstNameAndLastName(author.getFirstName(), author.getLastName());
+        return searchedAuthor == null
+                ? authorRepository.saveAndFlush(new Author()
+                .setFirstName(author.getFirstName())
+                .setLastName(author.getLastName()))
+                : searchedAuthor;
     }
 }

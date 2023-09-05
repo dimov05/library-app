@@ -1,14 +1,14 @@
 package bg.libapp.libraryapp.model.dto.author;
 
-public class AuthorBookViewDTO {
+public class AuthorDTO {
     private String firstName;
 
     private String lastName;
 
-    public AuthorBookViewDTO() {
+    public AuthorDTO() {
     }
 
-    public AuthorBookViewDTO(String firstName, String lastName) {
+    public AuthorDTO(String firstName, String lastName) {
         this.firstName = firstName;
         this.lastName = lastName;
     }
@@ -17,7 +17,7 @@ public class AuthorBookViewDTO {
         return firstName;
     }
 
-    public AuthorBookViewDTO setFirstName(String firstName) {
+    public AuthorDTO setFirstName(String firstName) {
         this.firstName = firstName;
         return this;
     }
@@ -26,7 +26,7 @@ public class AuthorBookViewDTO {
         return lastName;
     }
 
-    public AuthorBookViewDTO setLastName(String lastName) {
+    public AuthorDTO setLastName(String lastName) {
         this.lastName = lastName;
         return this;
     }

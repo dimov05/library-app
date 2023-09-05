@@ -1,10 +1,10 @@
 package bg.libapp.libraryapp.service;
 
 import bg.libapp.libraryapp.exceptions.UserNotFoundException;
-import bg.libapp.libraryapp.model.dto.user.UserEditDTO;
-import bg.libapp.libraryapp.model.dto.user.UserPasswordChangeDTO;
-import bg.libapp.libraryapp.model.dto.user.UserRoleChangeDTO;
-import bg.libapp.libraryapp.model.dto.user.UserViewDTO;
+import bg.libapp.libraryapp.model.dto.user.UpdateUserRequest;
+import bg.libapp.libraryapp.model.dto.user.ChangePasswordRequest;
+import bg.libapp.libraryapp.model.dto.user.ChangeRoleRequest;
+import bg.libapp.libraryapp.model.dto.user.UserDTO;
 import bg.libapp.libraryapp.model.entity.User;
 import bg.libapp.libraryapp.model.mappers.UserMapper;
 import bg.libapp.libraryapp.repository.UserRepository;
@@ -26,62 +26,62 @@ public class UserService {
     }
 
     public void save(User userToSave) {
-        this.userRepository.saveAndFlush(userToSave);
+        userRepository.saveAndFlush(userToSave);
     }
 
     public boolean existsByUsername(String username) {
-        return this.userRepository.existsByUsername(username);
+        return userRepository.existsByUsername(username);
     }
 
-    public UserViewDTO findViewDTOById(long id) {
-        Optional<User> user = this.userRepository.findById(id);
-        return user.map(UserMapper::mapViewDTOFromUser).orElse(null);
+    public UserDTO findViewDTOById(long id) {
+        Optional<User> user = userRepository.findById(id);
+        return user.map(UserMapper::toUserDTO).orElse(null);
     }
 
-    public List<UserViewDTO> findAllUsersViewDTO() {
-        List<User> users = this.userRepository.findAll();
+    public List<UserDTO> findAllUsersViewDTO() {
+        List<User> users = userRepository.findAll();
         return users
                 .stream()
-                .map(UserMapper::mapViewDTOFromUser)
+                .map(UserMapper::toUserDTO)
                 .toList();
     }
 
-    public void editUserAndSave(UserEditDTO userEditDTO, long id) {
-        User oldUser = this.userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("User with this id is not found! - " + id));
-        editUserWithUserEditDTOData(userEditDTO, oldUser);
-        this.userRepository.saveAndFlush(oldUser);
+    public void editUserAndSave(UpdateUserRequest updateUserRequest, long id) {
+        User oldUser = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
+        editUserWithUserEditDTOData(updateUserRequest, oldUser);
+        userRepository.saveAndFlush(oldUser);
     }
 
-    public void changeRoleAndSave(UserRoleChangeDTO userRoleChangeDTO, long id) {
-        User oldUser = this.userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("User with this id is not found! - " + id));
-        oldUser.setRole(userRoleChangeDTO.getRole());
-        this.userRepository.saveAndFlush(oldUser);
+    public void changeRoleAndSave(ChangeRoleRequest changeRoleRequest, long id) {
+        User oldUser = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
+        oldUser.setRole(changeRoleRequest.getRole());
+        userRepository.saveAndFlush(oldUser);
     }
 
-    public void changePasswordAndSave(UserPasswordChangeDTO userPasswordChangeDTO, long id) {
-        User oldUser = this.userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("User with this id is not found! - " + id));
-        oldUser.setPassword(passwordEncoder.encode(userPasswordChangeDTO.getNewPassword()));
-        this.userRepository.saveAndFlush(oldUser);
+    public void changePasswordAndSave(ChangePasswordRequest changePasswordRequest, long id) {
+        User oldUser = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
+        oldUser.setPassword(passwordEncoder.encode(changePasswordRequest.getNewPassword()));
+        userRepository.saveAndFlush(oldUser);
     }
 
     public String getUsernameById(long id) {
-        return this.userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("User with this id is not found! - " + id))
+        return userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id))
                 .getUsername();
     }
 
-    private static void editUserWithUserEditDTOData(UserEditDTO userEditDTO, User oldUser) {
+    private static void editUserWithUserEditDTOData(UpdateUserRequest updateUserRequest, User oldUser) {
         oldUser
-                .setFirstName(userEditDTO.getFirstName())
-                .setLastName(userEditDTO.getLastName())
-                .setDisplayName(userEditDTO.getDisplayName());
+                .setFirstName(updateUserRequest.getFirstName())
+                .setLastName(updateUserRequest.getLastName())
+                .setDisplayName(updateUserRequest.getDisplayName());
     }
 
     public void deleteUserById(long id) {
-        this.userRepository.deleteById(id);
+        userRepository.deleteById(id);
     }
 
     public void logout() {
