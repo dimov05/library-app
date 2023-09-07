@@ -15,7 +15,7 @@ public class Genre {
     @Column(name = "name",length = 50,nullable = false,unique = true)
     private String name;
 
-    @ManyToMany(mappedBy = "genres")
+    @ManyToMany(mappedBy = "genres",fetch = FetchType.EAGER)
     private Set<Book> books;
 
     public Genre() {

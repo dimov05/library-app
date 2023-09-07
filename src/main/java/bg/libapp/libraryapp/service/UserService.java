@@ -8,6 +8,8 @@ import bg.libapp.libraryapp.model.dto.user.UserDTO;
 import bg.libapp.libraryapp.model.entity.User;
 import bg.libapp.libraryapp.model.mappers.UserMapper;
 import bg.libapp.libraryapp.repository.UserRepository;
+import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,10 +18,12 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@Transactional
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
+    @Autowired
     public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -46,25 +50,28 @@ public class UserService {
                 .toList();
     }
 
-    public void editUserAndSave(UpdateUserRequest updateUserRequest, long id) {
+    public UserDTO editUserAndSave(UpdateUserRequest updateUserRequest, long id) {
         User oldUser = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
         editUserWithUserEditDTOData(updateUserRequest, oldUser);
         userRepository.saveAndFlush(oldUser);
+        return UserMapper.toUserDTO(oldUser);
     }
 
-    public void changeRoleAndSave(ChangeRoleRequest changeRoleRequest, long id) {
+    public UserDTO changeRoleAndSave(ChangeRoleRequest changeRoleRequest, long id) {
         User oldUser = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
         oldUser.setRole(changeRoleRequest.getRole());
         userRepository.saveAndFlush(oldUser);
+        return UserMapper.toUserDTO(oldUser);
     }
 
-    public void changePasswordAndSave(ChangePasswordRequest changePasswordRequest, long id) {
+    public UserDTO changePasswordAndSave(ChangePasswordRequest changePasswordRequest, long id) {
         User oldUser = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
         oldUser.setPassword(passwordEncoder.encode(changePasswordRequest.getNewPassword()));
         userRepository.saveAndFlush(oldUser);
+        return UserMapper.toUserDTO(oldUser);
     }
 
     public String getUsernameById(long id) {
@@ -80,8 +87,11 @@ public class UserService {
                 .setDisplayName(updateUserRequest.getDisplayName());
     }
 
-    public void deleteUserById(long id) {
+    public UserDTO deleteUserById(long id) {
+        User toDelete = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
         userRepository.deleteById(id);
+        return UserMapper.toUserDTO(toDelete);
     }
 
     public void logout() {

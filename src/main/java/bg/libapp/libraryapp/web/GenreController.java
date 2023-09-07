@@ -25,7 +25,6 @@ public class GenreController {
     @GetMapping("")
     @PreAuthorize("hasAnyAuthority('ROLE_USER','ROLE_MODERATOR','ROLE_ADMIN')")
     public ResponseEntity<Set<GenreDTO>> getAllGenres() {
-        Set<GenreDTO> genres = genreService.getAllGenresViewDTO();
-        return new ResponseEntity<>(genres, HttpStatus.OK);
+        return new ResponseEntity<>(genreService.getAllGenresViewDTO(), HttpStatus.OK);
     }
 }

@@ -4,6 +4,8 @@ import bg.libapp.libraryapp.model.enums.Role;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Table
 @Entity(name = "user")
@@ -26,11 +28,13 @@ public class User {
     private LocalDate dateOfBirth;
     @Column(name = "role", nullable = false)
     private int role;
+    @OneToMany(mappedBy = "user")
+    private Set<BookAudit> audits;
 
     public User() {
     }
 
-    public User(String username, String firstName, String lastName, String displayName, String password, LocalDate dateOfBirth, String role) {
+    public User(String username, String firstName, String lastName, String displayName, String password, LocalDate dateOfBirth, String role,Set<BookAudit> audits) {
         this.username = username;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -38,9 +42,10 @@ public class User {
         this.password = password;
         this.dateOfBirth = dateOfBirth;
         this.role = Role.valueOf(role).ordinal();
+        this.audits = audits;
     }
 
-    public User(long id, String username, String firstName, String lastName, String displayName, String password, LocalDate dateOfBirth, int role) {
+    public User(long id, String username, String firstName, String lastName, String displayName, String password, LocalDate dateOfBirth, int role,Set<BookAudit> audits) {
         this.id = id;
         this.username = username;
         this.firstName = firstName;
@@ -49,6 +54,7 @@ public class User {
         this.password = password;
         this.dateOfBirth = dateOfBirth;
         this.role = role;
+        this.audits = audits;
     }
 
     public long getId() {
@@ -122,4 +128,24 @@ public class User {
         this.role = role;
         return this;
     }
+
+    public Set<BookAudit> getAudits() {
+        return audits;
+    }
+
+    public User setAudits(Set<BookAudit> audits) {
+        this.audits = audits;
+        return this;
+    }
+    public void addAudit(BookAudit audit) {
+        if (this.audits == null) {
+            this.audits = new HashSet<>();
+        }
+        this.audits.add(audit);
+    }
+
+    public void removeAudit(BookAudit audit) {
+        this.audits.remove(audit);
+    }
+
 }
