@@ -1,0 +1,18 @@
+INSERT INTO `library_app`.`genre` (`name`)
+VALUES ('Action'),
+       ('Classics'),
+       ('Comic'),
+       ('Mystery'),
+       ('Cookbook'),
+       ('True crime'),
+       ( 'History'),
+       ('Memoir'),
+       ('Horror'),
+       ('Fiction'),
+       ('Poetry'),
+       ('Self-Help'),
+       ('Biographies'),
+       ('Thriller'),
+       ('Romance'),
+       ('Fantasy'),
+       ('Biographies');

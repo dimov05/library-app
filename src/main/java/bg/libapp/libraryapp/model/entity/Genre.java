@@ -12,7 +12,7 @@ public class Genre {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private long id;
-    @Column(name = "name",length = 50,nullable = false)
+    @Column(name = "name",length = 50,nullable = false,unique = true)
     private String name;
 
     @ManyToMany(mappedBy = "genres")
@@ -55,6 +55,15 @@ public class Genre {
             this.books = new HashSet<>();
         }
         this.books.add(book);
+    }
+
+    public Set<Book> getBooks() {
+        return books;
+    }
+
+    public Genre setBooks(Set<Book> books) {
+        this.books = books;
+        return this;
     }
 
     public void removeBook(Book book) {
