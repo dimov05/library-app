@@ -4,6 +4,7 @@ import bg.libapp.libraryapp.exceptions.AuthorNotFoundException;
 import bg.libapp.libraryapp.exceptions.BookAlreadyAddedException;
 import bg.libapp.libraryapp.exceptions.BookNotFoundException;
 import bg.libapp.libraryapp.exceptions.GenreNotFoundException;
+import bg.libapp.libraryapp.model.dto.author.AuthorRequest;
 import bg.libapp.libraryapp.model.dto.book.BookAddRequest;
 import bg.libapp.libraryapp.model.dto.book.BookExtendedDTO;
 import bg.libapp.libraryapp.model.entity.Author;
@@ -41,6 +42,10 @@ public class BookService {
             throw new BookAlreadyAddedException(isbnOfBook);
         }
         book = bookMapper.toBook(bookAddRequest);
+        book.setAuthors(bookAddRequest.getAuthors()
+                .stream()
+                .map(this::findOrCreate)
+                .collect(Collectors.toSet()));
         bookRepository.saveAndFlush(book);
     }
 
@@ -79,5 +84,13 @@ public class BookService {
                 .stream()
                 .map(bookMapper::toBookExtendedDTO)
                 .collect(Collectors.toSet());
+    }
+    private Author findOrCreate(AuthorRequest author) {
+        Author searchedAuthor = this.authorRepository.findAuthorByFirstNameAndLastName(author.getFirstName(), author.getLastName());
+        return searchedAuthor == null
+                ? authorRepository.saveAndFlush(new Author()
+                .setFirstName(author.getFirstName())
+                .setLastName(author.getLastName()))
+                : searchedAuthor;
     }
 }

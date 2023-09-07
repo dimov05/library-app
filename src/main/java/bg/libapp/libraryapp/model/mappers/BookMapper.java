@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.stream.Collectors;
 
 @Component
@@ -52,10 +53,7 @@ public class BookMapper {
                         .stream()
                         .map(genre -> this.genreRepository.findByName(genre.getName()))
                         .collect(Collectors.toSet()))
-                .setAuthors(bookAddRequest.getAuthors()
-                        .stream()
-                        .map(this::findOrCreate)
-                        .collect(Collectors.toSet()));
+                .setAuthors(new HashSet<>());
     }
 
     public BookExtendedDTO toBookExtendedDTO(Book book) {
@@ -73,14 +71,5 @@ public class BookMapper {
                         .stream()
                         .map(authorMapper::toAuthorDTO)
                         .collect(Collectors.toSet()));
-    }
-
-    private Author findOrCreate(AuthorRequest author) {
-        Author searchedAuthor = this.authorRepository.findAuthorByFirstNameAndLastName(author.getFirstName(), author.getLastName());
-        return searchedAuthor == null
-                ? authorRepository.saveAndFlush(new Author()
-                .setFirstName(author.getFirstName())
-                .setLastName(author.getLastName()))
-                : searchedAuthor;
     }
 }
