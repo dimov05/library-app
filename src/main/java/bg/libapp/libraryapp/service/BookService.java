@@ -35,9 +35,10 @@ public class BookService {
     }
 
     public void saveNewBook(BookAddRequest bookAddRequest) {
-        Book book = bookRepository.findByIsbn(bookAddRequest.getIsbn());
+        String isbnOfBook = bookAddRequest.getIsbn();
+        Book book = bookRepository.findByIsbn(isbnOfBook);
         if (book != null) {
-            throw new BookAlreadyAddedException(bookAddRequest.getIsbn());
+            throw new BookAlreadyAddedException(isbnOfBook);
         }
         book = bookMapper.toBook(bookAddRequest);
         bookRepository.saveAndFlush(book);
