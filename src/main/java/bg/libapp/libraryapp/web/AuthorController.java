@@ -1,6 +1,6 @@
 package bg.libapp.libraryapp.web;
 
-import bg.libapp.libraryapp.model.dto.author.AuthorViewDTO;
+import bg.libapp.libraryapp.model.dto.author.AuthorExtendedDTO;
 import bg.libapp.libraryapp.service.AuthorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,8 +25,7 @@ public class AuthorController {
 
     @GetMapping("")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_USER','ROLE_MODERATOR')")
-    public ResponseEntity<Set<AuthorViewDTO>> getAllAuthors() {
-        Set<AuthorViewDTO> authors = this.authorService.getAllAuthors();
-        return new ResponseEntity<>(authors, HttpStatus.OK);
+    public ResponseEntity<Set<AuthorExtendedDTO>> getAllAuthors() {
+        return new ResponseEntity<>(authorService.getAllAuthors(), HttpStatus.OK);
     }
 }
