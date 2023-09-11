@@ -1,8 +1,8 @@
 package bg.libapp.libraryapp.web;
 
-import bg.libapp.libraryapp.model.dto.user.UserLoginDTO;
-import bg.libapp.libraryapp.model.dto.user.UserRegisterDTO;
-import bg.libapp.libraryapp.model.dto.user.UserViewDTO;
+import bg.libapp.libraryapp.model.dto.user.LoginUserRequest;
+import bg.libapp.libraryapp.model.dto.user.RegisterUserRequest;
+import bg.libapp.libraryapp.model.dto.user.UserDTO;
 import bg.libapp.libraryapp.model.entity.User;
 import bg.libapp.libraryapp.model.mappers.UserMapper;
 import bg.libapp.libraryapp.service.UserService;
@@ -14,7 +14,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,10 +23,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
-    private AuthenticationManager authenticationManager;
-    private UserService userService;
+    private final AuthenticationManager authenticationManager;
+    private final UserService userService;
 
-    private PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
     public AuthController(AuthenticationManager authenticationManager, UserService userService, PasswordEncoder passwordEncoder) {
@@ -37,10 +36,10 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> authenticateUser(@RequestBody @Valid UserLoginDTO userLoginDTO) {
+    public ResponseEntity<String> authenticateUser(@RequestBody @Valid LoginUserRequest loginUserRequest) {
         Authentication authentication = authenticationManager
                 .authenticate(new UsernamePasswordAuthenticationToken(
-                        userLoginDTO.getUsername(), userLoginDTO.getPassword()));
+                        loginUserRequest.getUsername(), loginUserRequest.getPassword()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         System.out.println(authentication.getName());
@@ -49,21 +48,21 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody @Valid UserRegisterDTO userRegisterDTO) {
-        if (userService.existsByUsername(userRegisterDTO.getUsername())) {
+    public ResponseEntity<?> registerUser(@RequestBody @Valid RegisterUserRequest registerUserRequest) {
+        if (userService.existsByUsername(registerUserRequest.getUsername())) {
             return new ResponseEntity<>("Username is already taken!", HttpStatus.BAD_REQUEST);
         }
-        User userToSave = UserMapper.mapUserFromUserRegisterDTO(userRegisterDTO);
-        userToSave.setPassword(passwordEncoder.encode(userRegisterDTO.getPassword()));
+        User userToSave = UserMapper.mapToUser(registerUserRequest);
+        userToSave.setPassword(passwordEncoder.encode(registerUserRequest.getPassword()));
         userService.save(userToSave);
-        UserViewDTO user = UserMapper.mapViewDTOFromUser(userToSave);
+        UserDTO user = UserMapper.mapToUserDTO(userToSave);
 
         return new ResponseEntity<>(user, HttpStatus.CREATED);
     }
 
     @PostMapping("/logout")
     public ResponseEntity<String> logoutUser() {
-        this.userService.logout();
+        userService.logout();
 
         return new ResponseEntity<>("Successfully logged out!", HttpStatus.OK);
     }
