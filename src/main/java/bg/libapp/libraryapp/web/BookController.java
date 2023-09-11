@@ -1,7 +1,6 @@
 package bg.libapp.libraryapp.web;
 
-import bg.libapp.libraryapp.model.dto.book.BookAddRequest;
-import bg.libapp.libraryapp.model.dto.book.BookExtendedDTO;
+import bg.libapp.libraryapp.model.dto.book.*;
 import bg.libapp.libraryapp.service.BookService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,39 +24,46 @@ public class BookController {
     @PostMapping()
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_MODERATOR')")
     public ResponseEntity<?> addBook(@Valid @RequestBody BookAddRequest bookAddRequest) {
-        this.bookService.saveNewBook(bookAddRequest);
-        BookExtendedDTO book = this.bookService.findBookByIsbn(bookAddRequest.getIsbn());
-
-        return new ResponseEntity<>(book, HttpStatus.CREATED);
+        return new ResponseEntity<>(this.bookService.saveNewBook(bookAddRequest), HttpStatus.CREATED);
     }
 
     @GetMapping("/{isbn}")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_USER','ROLE_MODERATOR')")
-    public ResponseEntity<?> getBookByIsbn(@PathVariable("isbn") String isbn) {
-        BookExtendedDTO bookExtendedDTO = this.bookService.findBookByIsbn(isbn);
-        return new ResponseEntity<>(bookExtendedDTO, HttpStatus.OK);
+    public ResponseEntity<BookExtendedDTO> getBookByIsbn(@PathVariable("isbn") String isbn) {
+        return new ResponseEntity<>(this.bookService.findBookByIsbn(isbn), HttpStatus.OK);
     }
 
     @GetMapping("")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_USER','ROLE_MODERATOR')")
     public ResponseEntity<Set<BookExtendedDTO>> getAllBooks() {
-        Set<BookExtendedDTO> books = bookService.getAllBooks();
-        return new ResponseEntity<>(books, HttpStatus.OK);
+        return new ResponseEntity<>(bookService.getAllBooks(), HttpStatus.OK);
     }
 
     @GetMapping("/author/{firstName},{lastName}")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_USER','ROLE_MODERATOR')")
     public ResponseEntity<?> getAllBooksByAuthor(@PathVariable("firstName") String firstName, @PathVariable("lastName") String lastName) {
-        Set<BookExtendedDTO> books = bookService.getAllBooksByAuthorFirstAndLastName(firstName, lastName);
-        return new ResponseEntity<>(books, HttpStatus.OK);
+        return new ResponseEntity<>(bookService.getAllBooksByAuthorFirstAndLastName(firstName, lastName), HttpStatus.OK);
     }
 
     //get all books by genre
     @GetMapping("/genre/{genre}")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_USER','ROLE_MODERATOR')")
-    public ResponseEntity<?> getAllBooksByGenre(@PathVariable("genre") String genre) {
-        Set<BookExtendedDTO> books = bookService.getAllBooksByGenre(genre);
-        return new ResponseEntity<>(books, HttpStatus.OK);
+    public ResponseEntity<Set<BookExtendedDTO>> getAllBooksByGenre(@PathVariable("genre") String genre) {
+        return new ResponseEntity<>(bookService.getAllBooksByGenre(genre), HttpStatus.OK);
+    }
 
+    @DeleteMapping("/delete/{isbn}")
+    public ResponseEntity<BookDTO> deleteBookById(@PathVariable("isbn") String isbn) {
+        return new ResponseEntity<>(bookService.deleteById(isbn), HttpStatus.OK);
+    }
+
+    @PutMapping("/year/{isbn}")
+    public ResponseEntity<BookDTO> updateYear(@PathVariable("isbn") String isbn, @Valid @RequestBody BookUpdateYearRequest bookUpdateYearRequest) {
+        return new ResponseEntity<>(bookService.updateYear(isbn, bookUpdateYearRequest), HttpStatus.OK);
+    }
+
+    @PutMapping("/publisher/{isbn}")
+    public ResponseEntity<BookDTO> updatePublisher(@PathVariable("isbn") String isbn, @Valid @RequestBody BookUpdatePublisherRequest bookUpdatePublisherRequest) {
+        return new ResponseEntity<>(bookService.updatePublisher(isbn, bookUpdatePublisherRequest), HttpStatus.OK);
     }
 }
