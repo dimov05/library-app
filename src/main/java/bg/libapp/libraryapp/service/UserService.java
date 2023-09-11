@@ -35,14 +35,14 @@ public class UserService {
 
     public UserDTO findViewDTOById(long id) {
         Optional<User> user = userRepository.findById(id);
-        return user.map(UserMapper::toUserDTO).orElse(null);
+        return user.map(UserMapper::mapToUserDTO).orElse(null);
     }
 
     public List<UserDTO> findAllUsersViewDTO() {
         List<User> users = userRepository.findAll();
         return users
                 .stream()
-                .map(UserMapper::toUserDTO)
+                .map(UserMapper::mapToUserDTO)
                 .toList();
     }
 

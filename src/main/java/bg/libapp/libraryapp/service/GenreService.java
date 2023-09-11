@@ -11,17 +11,15 @@ import java.util.stream.Collectors;
 @Service
 public class GenreService {
     private final GenreRepository genreRepository;
-    private final GenreMapper genreMapper;
 
-    public GenreService(GenreRepository genreRepository, GenreMapper genreMapper) {
+    public GenreService(GenreRepository genreRepository) {
         this.genreRepository = genreRepository;
-        this.genreMapper = genreMapper;
     }
 
     public Set<GenreDTO> getAllGenresViewDTO() {
         return genreRepository.findAll()
                 .stream()
-                .map(genreMapper::toGenreDTO)
+                .map(GenreMapper::mapToGenreDTO)
                 .collect(Collectors.toSet());
     }
 }

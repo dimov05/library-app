@@ -1,36 +1,17 @@
 package bg.libapp.libraryapp.model.mappers;
 
-import bg.libapp.libraryapp.model.dto.author.AuthorRequest;
 import bg.libapp.libraryapp.model.dto.book.BookAddRequest;
 import bg.libapp.libraryapp.model.dto.book.BookDTO;
 import bg.libapp.libraryapp.model.dto.book.BookExtendedDTO;
-import bg.libapp.libraryapp.model.entity.Author;
 import bg.libapp.libraryapp.model.entity.Book;
-import bg.libapp.libraryapp.repository.AuthorRepository;
-import bg.libapp.libraryapp.repository.GenreRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.stream.Collectors;
 
-@Component
 public class BookMapper {
-    private final AuthorRepository authorRepository;
-    private final GenreRepository genreRepository;
-    private final AuthorMapper authorMapper;
-    private final GenreMapper genreMapper;
 
-    @Autowired
-    public BookMapper(AuthorRepository authorRepository, GenreRepository genreRepository, AuthorMapper authorMapper, GenreMapper genreMapper) {
-        this.authorRepository = authorRepository;
-        this.genreRepository = genreRepository;
-        this.authorMapper = authorMapper;
-        this.genreMapper = genreMapper;
-    }
-
-    public BookDTO toBookDTO(Book book) {
+    public static BookDTO mapToBookDTO(Book book) {
         return new BookDTO()
                 .setIsbn(book.getIsbn())
                 .setYear(book.getYear())
@@ -38,25 +19,22 @@ public class BookMapper {
                 .setPublisher(book.getPublisher())
                 .setGenres(book.getGenres()
                         .stream()
-                        .map(genreMapper::toGenreDTO)
+                        .map(GenreMapper::mapToGenreDTO)
                         .collect(Collectors.toSet()));
     }
 
-    public Book toBook(BookAddRequest bookAddRequest) {
+    public static Book mapToBook(BookAddRequest bookAddRequest) {
         return new Book()
                 .setIsbn(bookAddRequest.getIsbn())
                 .setTitle(bookAddRequest.getTitle())
                 .setYear(bookAddRequest.getYear())
                 .setDateAdded(LocalDateTime.now())
                 .setPublisher(bookAddRequest.getPublisher())
-                .setGenres(bookAddRequest.getGenres()
-                        .stream()
-                        .map(genre -> this.genreRepository.findByName(genre.getName()))
-                        .collect(Collectors.toSet()))
+                .setGenres(new HashSet<>())
                 .setAuthors(new HashSet<>());
     }
 
-    public BookExtendedDTO toBookExtendedDTO(Book book) {
+    public static BookExtendedDTO mapToBookExtendedDTO(Book book) {
         return new BookExtendedDTO()
                 .setIsbn(book.getIsbn())
                 .setTitle(book.getTitle())
@@ -65,11 +43,11 @@ public class BookMapper {
                 .setDateAdded(book.getDateAdded())
                 .setGenres(book.getGenres()
                         .stream()
-                        .map(genreMapper::toGenreDTO)
+                        .map(GenreMapper::mapToGenreDTO)
                         .collect(Collectors.toSet()))
                 .setAuthors(book.getAuthors()
                         .stream()
-                        .map(authorMapper::toAuthorDTO)
+                        .map(AuthorMapper::mapToAuthorDTO)
                         .collect(Collectors.toSet()));
     }
 }

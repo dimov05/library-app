@@ -12,17 +12,15 @@ import java.util.stream.Collectors;
 @Service
 public class AuthorService {
     private final AuthorRepository authorRepository;
-    private final AuthorMapper authorMapper;
 
     @Autowired
-    public AuthorService(AuthorRepository authorRepository, AuthorMapper authorMapper) {
+    public AuthorService(AuthorRepository authorRepository) {
         this.authorRepository = authorRepository;
-        this.authorMapper = authorMapper;
     }
 
     public Set<AuthorExtendedDTO> getAllAuthors() {
         return authorRepository.findAll()
-                .stream().map(authorMapper::toAuthorExtendedDTO)
+                .stream().map(AuthorMapper::mapToAuthorExtendedDTO)
                 .collect(Collectors.toSet());
     }
 }
