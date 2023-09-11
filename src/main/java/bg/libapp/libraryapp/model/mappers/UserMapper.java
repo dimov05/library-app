@@ -8,10 +8,7 @@ import bg.libapp.libraryapp.model.entity.User;
 import bg.libapp.libraryapp.model.enums.Role;
 
 public class UserMapper {
-    private UserMapper() {
-    }
-
-    public static User toUser(RegisterUserRequest registerUserRequest) {
+    public static User mapToUser(RegisterUserRequest registerUserRequest) {
         return new User()
                 .setUsername(registerUserRequest.getUsername())
                 .setFirstName(registerUserRequest.getFirstName())
@@ -22,19 +19,19 @@ public class UserMapper {
                 .setRole(Role.USER.ordinal());
     }
 
-    public static User toUser(UpdateUserRequest updateUserRequest) {
+    public static User mapToUser(UpdateUserRequest updateUserRequest) {
         return new User()
                 .setFirstName(updateUserRequest.getFirstName())
                 .setLastName(updateUserRequest.getLastName())
                 .setDisplayName(updateUserRequest.getDisplayName());
     }
 
-    public static User toUser(ChangePasswordRequest changePasswordRequest) {
+    public static User mapToUser(ChangePasswordRequest changePasswordRequest) {
         return new User()
                 .setPassword(changePasswordRequest.getNewPassword());
     }
 
-    public static UserDTO toUserDTO(User user) {
+    public static UserDTO mapToUserDTO(User user) {
         return new UserDTO()
                 .setId(user.getId())
                 .setUsername(user.getUsername())
