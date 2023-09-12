@@ -26,6 +26,8 @@ public class User {
     private LocalDate dateOfBirth;
     @Column(name = "role", nullable = false)
     private int role;
+    @Column(name = "is_active",nullable = false)
+    private boolean isActive;
 
     public User() {
     }
@@ -40,7 +42,7 @@ public class User {
         this.role = Role.valueOf(role).ordinal();
     }
 
-    public User(long id, String username, String firstName, String lastName, String displayName, String password, LocalDate dateOfBirth, int role) {
+    public User(long id, String username, String firstName, String lastName, String displayName, String password, LocalDate dateOfBirth, int role, boolean isActive) {
         this.id = id;
         this.username = username;
         this.firstName = firstName;
@@ -49,6 +51,7 @@ public class User {
         this.password = password;
         this.dateOfBirth = dateOfBirth;
         this.role = role;
+        this.isActive = isActive;
     }
 
     public long getId() {
@@ -120,6 +123,15 @@ public class User {
 
     public User setRole(int role) {
         this.role = role;
+        return this;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public User setActive(boolean active) {
+        isActive = active;
         return this;
     }
 }

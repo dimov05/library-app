@@ -49,15 +49,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody @Valid RegisterUserRequest registerUserRequest) {
-        if (userService.existsByUsername(registerUserRequest.getUsername())) {
-            return new ResponseEntity<>("Username is already taken!", HttpStatus.BAD_REQUEST);
-        }
-        User userToSave = UserMapper.mapToUser(registerUserRequest);
-        userToSave.setPassword(passwordEncoder.encode(registerUserRequest.getPassword()));
-        userService.save(userToSave);
-        UserDTO user = UserMapper.mapToUserDTO(userToSave);
-
-        return new ResponseEntity<>(user, HttpStatus.CREATED);
+        return new ResponseEntity<>(userService.save(registerUserRequest), HttpStatus.CREATED);
     }
 
     @PostMapping("/logout")

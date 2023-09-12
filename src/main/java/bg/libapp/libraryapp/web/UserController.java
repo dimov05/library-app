@@ -69,4 +69,16 @@ public class UserController {
     public ResponseEntity<UserDTO> deleteUserById(@PathVariable("id") long id) {
         return new ResponseEntity<>(userService.deleteUserById(id), HttpStatus.OK);
     }
+
+    @PutMapping("/deactivate/{id}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN') or @userService.getUsernameById(#id) == authentication.name")
+    public ResponseEntity<UserDTO> deactivateUser(@PathVariable("id") long id) {
+        return new ResponseEntity<>(userService.deactivateUser(id), HttpStatus.OK);
+    }
+
+    @PutMapping("/activate/{id}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN') or @userService.getUsernameById(#id) == authentication.name")
+    public ResponseEntity<UserDTO> activateUser(@PathVariable("id") long id) {
+        return new ResponseEntity<>(userService.activateUser(id), HttpStatus.OK);
+    }
 }

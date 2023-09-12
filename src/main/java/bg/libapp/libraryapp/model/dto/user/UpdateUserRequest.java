@@ -1,13 +1,9 @@
 package bg.libapp.libraryapp.model.dto.user;
 
-import bg.libapp.libraryapp.model.validation.UniqueUsername;
 import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.Past;
 import org.hibernate.validator.constraints.Length;
 
-import java.time.LocalDate;
-
-public class UserEditDTO {
+public class UpdateUserRequest {
     @NotEmpty(message = "First name can not be empty")
     @Length(min = 2, message = "First name should be at least 2 characters")
     private String firstName;
@@ -18,14 +14,14 @@ public class UserEditDTO {
     @Length(min = 3, message = "Display name should be at least 3 characters")
     private String displayName;
 
-    public UserEditDTO() {
+    public UpdateUserRequest() {
     }
 
     public String getFirstName() {
         return firstName;
     }
 
-    public UserEditDTO setFirstName(String firstName) {
+    public UpdateUserRequest setFirstName(String firstName) {
         this.firstName = firstName;
         return this;
     }
@@ -34,7 +30,7 @@ public class UserEditDTO {
         return lastName;
     }
 
-    public UserEditDTO setLastName(String lastName) {
+    public UpdateUserRequest setLastName(String lastName) {
         this.lastName = lastName;
         return this;
     }
@@ -43,7 +39,7 @@ public class UserEditDTO {
         return displayName;
     }
 
-    public UserEditDTO setDisplayName(String displayName) {
+    public UpdateUserRequest setDisplayName(String displayName) {
         this.displayName = displayName;
         return this;
     }

@@ -1,15 +1,15 @@
 package bg.libapp.libraryapp.model.dto.user;
 
-public class UserLoginDTO {
+public class LoginUserRequest {
 
     private String username;
 
     private String password;
 
-    public UserLoginDTO() {
+    public LoginUserRequest() {
     }
 
-    public UserLoginDTO(String username, String password) {
+    public LoginUserRequest(String username, String password) {
         this.username = username;
         this.password = password;
     }
@@ -18,7 +18,7 @@ public class UserLoginDTO {
         return username;
     }
 
-    public UserLoginDTO setUsername(String username) {
+    public LoginUserRequest setUsername(String username) {
         this.username = username;
         return this;
     }
@@ -27,7 +27,7 @@ public class UserLoginDTO {
         return password;
     }
 
-    public UserLoginDTO setPassword(String password) {
+    public LoginUserRequest setPassword(String password) {
         this.password = password;
         return this;
     }

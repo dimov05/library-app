@@ -1,18 +1,20 @@
 package bg.libapp.libraryapp.model.dto.book;
 
-import bg.libapp.libraryapp.model.dto.author.AuthorBookViewDTO;
-import bg.libapp.libraryapp.model.dto.genre.GenreBookViewDTO;
+import bg.libapp.libraryapp.model.dto.author.AuthorRequest;
+import bg.libapp.libraryapp.model.dto.genre.GenreRequest;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import org.hibernate.validator.constraints.ISBN;
 import org.hibernate.validator.constraints.Length;
 
 import java.util.Set;
 
-public class BookAddDTO {
+public class BookAddRequest {
     @NotBlank(message = "isbn should not be blank")
-    @Length(min = 13, max = 17, message = "Size of isbn should be between 13 and 17 symbols")
+    @ISBN(type = ISBN.Type.ANY)
     private String isbn;
     @NotBlank(message = "Title should not be blank")
     @Length(min = 1, max = 150, message = "Title should be between 1 and 150 symbols")
@@ -24,14 +26,14 @@ public class BookAddDTO {
     @Length(min = 1, max = 100, message = "Publisher name should be between 1 and 100 symbols")
     private String publisher;
     @NotEmpty
-    private Set<GenreBookViewDTO> genres;
+    private Set<@Valid GenreRequest> genres;
     @NotEmpty
-    private Set<AuthorBookViewDTO> authors;
+    private Set<@Valid AuthorRequest> authors;
 
-    public BookAddDTO() {
+    public BookAddRequest() {
     }
 
-    public BookAddDTO(String isbn, String title, int year, String publisher, Set<GenreBookViewDTO> genres, Set<AuthorBookViewDTO> authors) {
+    public BookAddRequest(String isbn, String title, int year, String publisher, Set<@Valid GenreRequest> genres, Set<@Valid AuthorRequest> authors) {
         this.isbn = isbn;
         this.title = title;
         this.year = year;
@@ -44,7 +46,7 @@ public class BookAddDTO {
         return isbn;
     }
 
-    public BookAddDTO setIsbn(String isbn) {
+    public BookAddRequest setIsbn(String isbn) {
         this.isbn = isbn;
         return this;
     }
@@ -53,7 +55,7 @@ public class BookAddDTO {
         return title;
     }
 
-    public BookAddDTO setTitle(String title) {
+    public BookAddRequest setTitle(String title) {
         this.title = title;
         return this;
     }
@@ -62,7 +64,7 @@ public class BookAddDTO {
         return year;
     }
 
-    public BookAddDTO setYear(int year) {
+    public BookAddRequest setYear(int year) {
         this.year = year;
         return this;
     }
@@ -71,25 +73,25 @@ public class BookAddDTO {
         return publisher;
     }
 
-    public BookAddDTO setPublisher(String publisher) {
+    public BookAddRequest setPublisher(String publisher) {
         this.publisher = publisher;
         return this;
     }
 
-    public Set<GenreBookViewDTO> getGenres() {
+    public Set<GenreRequest> getGenres() {
         return genres;
     }
 
-    public BookAddDTO setGenres(Set<GenreBookViewDTO> genres) {
+    public BookAddRequest setGenres(Set<GenreRequest> genres) {
         this.genres = genres;
         return this;
     }
 
-    public Set<AuthorBookViewDTO> getAuthors() {
+    public Set<AuthorRequest> getAuthors() {
         return authors;
     }
 
-    public BookAddDTO setAuthors(Set<AuthorBookViewDTO> authors) {
+    public BookAddRequest setAuthors(Set<AuthorRequest> authors) {
         this.authors = authors;
         return this;
     }

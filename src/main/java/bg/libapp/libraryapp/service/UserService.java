@@ -1,10 +1,10 @@
 package bg.libapp.libraryapp.service;
 
+import bg.libapp.libraryapp.exceptions.UserIsAlreadyActivatedException;
+import bg.libapp.libraryapp.exceptions.UserIsAlreadyDeactivatedException;
 import bg.libapp.libraryapp.exceptions.UserNotFoundException;
-import bg.libapp.libraryapp.model.dto.user.UpdateUserRequest;
-import bg.libapp.libraryapp.model.dto.user.ChangePasswordRequest;
-import bg.libapp.libraryapp.model.dto.user.ChangeRoleRequest;
-import bg.libapp.libraryapp.model.dto.user.UserDTO;
+import bg.libapp.libraryapp.exceptions.UserWithThisUsernameAlreadyExistsException;
+import bg.libapp.libraryapp.model.dto.user.*;
 import bg.libapp.libraryapp.model.entity.User;
 import bg.libapp.libraryapp.model.mappers.UserMapper;
 import bg.libapp.libraryapp.repository.UserRepository;
@@ -29,24 +29,30 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public void save(User userToSave) {
+    public UserDTO save(RegisterUserRequest registerUserRequest) {
+        existsByUsername(registerUserRequest.getUsername());
+        User userToSave = UserMapper.mapToUser(registerUserRequest);
+        userToSave.setPassword(passwordEncoder.encode(registerUserRequest.getPassword()));
         userRepository.saveAndFlush(userToSave);
+        return UserMapper.mapToUserDTO(userToSave);
     }
 
-    public boolean existsByUsername(String username) {
-        return userRepository.existsByUsername(username);
+    public void existsByUsername(String username) {
+        if (userRepository.existsByUsername(username)) {
+            throw new UserWithThisUsernameAlreadyExistsException(username);
+        }
     }
 
     public UserDTO findViewDTOById(long id) {
         Optional<User> user = userRepository.findById(id);
-        return user.map(UserMapper::toUserDTO).orElse(null);
+        return user.map(UserMapper::mapToUserDTO).orElse(null);
     }
 
     public List<UserDTO> findAllUsersViewDTO() {
         List<User> users = userRepository.findAll();
         return users
                 .stream()
-                .map(UserMapper::toUserDTO)
+                .map(UserMapper::mapToUserDTO)
                 .toList();
     }
 
@@ -55,7 +61,7 @@ public class UserService {
                 .orElseThrow(() -> new UserNotFoundException(id));
         editUserWithUserEditDTOData(updateUserRequest, oldUser);
         userRepository.saveAndFlush(oldUser);
-        return UserMapper.toUserDTO(oldUser);
+        return UserMapper.mapToUserDTO(oldUser);
     }
 
     public UserDTO changeRoleAndSave(ChangeRoleRequest changeRoleRequest, long id) {
@@ -63,7 +69,7 @@ public class UserService {
                 .orElseThrow(() -> new UserNotFoundException(id));
         oldUser.setRole(changeRoleRequest.getRole());
         userRepository.saveAndFlush(oldUser);
-        return UserMapper.toUserDTO(oldUser);
+        return UserMapper.mapToUserDTO(oldUser);
     }
 
     public UserDTO changePasswordAndSave(ChangePasswordRequest changePasswordRequest, long id) {
@@ -71,7 +77,7 @@ public class UserService {
                 .orElseThrow(() -> new UserNotFoundException(id));
         oldUser.setPassword(passwordEncoder.encode(changePasswordRequest.getNewPassword()));
         userRepository.saveAndFlush(oldUser);
-        return UserMapper.toUserDTO(oldUser);
+        return UserMapper.mapToUserDTO(oldUser);
     }
 
     public String getUsernameById(long id) {
@@ -91,11 +97,34 @@ public class UserService {
         User toDelete = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
         userRepository.deleteById(id);
-        return UserMapper.toUserDTO(toDelete);
+        return UserMapper.mapToUserDTO(toDelete);
     }
 
     public void logout() {
         SecurityContextHolder.getContext().getAuthentication().setAuthenticated(false);
         SecurityContextHolder.clearContext();
     }
+
+    public UserDTO deactivateUser(long id) {
+        User userToEdit = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
+        if (!userToEdit.isActive()) {
+            throw new UserIsAlreadyDeactivatedException(id);
+        }
+        userToEdit.setActive(false);
+        userRepository.saveAndFlush(userToEdit);
+        return UserMapper.mapToUserDTO(userToEdit);
+    }
+
+    public UserDTO activateUser(long id) {
+        User userToEdit = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
+        if (userToEdit.isActive()) {
+            throw new UserIsAlreadyActivatedException(id);
+        }
+        userToEdit.setActive(true);
+        userRepository.saveAndFlush(userToEdit);
+        return UserMapper.mapToUserDTO(userToEdit);
+    }
+
 }

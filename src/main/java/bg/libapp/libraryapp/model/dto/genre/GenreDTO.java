@@ -1,12 +1,11 @@
 package bg.libapp.libraryapp.model.dto.genre;
 
-public class GenreBookViewDTO {
+public class GenreDTO {
     private String name;
-
-    public GenreBookViewDTO() {
+    public GenreDTO() {
     }
 
-    public GenreBookViewDTO(String name) {
+    public GenreDTO(String name) {
         this.name = name;
     }
 
@@ -14,7 +13,7 @@ public class GenreBookViewDTO {
         return name;
     }
 
-    public GenreBookViewDTO setName(String name) {
+    public GenreDTO setName(String name) {
         this.name = name;
         return this;
     }

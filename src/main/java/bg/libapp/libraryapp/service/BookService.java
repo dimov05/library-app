@@ -84,11 +84,6 @@ public class BookService {
         }
         String oldValueYear = String.valueOf(bookToEdit.getYear());
         String newValueYear = String.valueOf(bookUpdateYearRequest.getYear());
-//        try {
-//            fieldName = String.valueOf(Book.class.getDeclaredField("year"));
-//        } catch (NoSuchFieldException e) {
-//            throw new FieldNotFoundException("year", Book.class.getName());
-//        }
         bookToEdit.setYear(bookUpdateYearRequest.getYear());
         bookRepository.saveAndFlush(bookToEdit);
         eventPublisher.publishEvent(new BookAuditEvent(this, Audit.UPDATE.name(), "year", oldValueYear, newValueYear, getUserForAudit(), bookToEdit));
@@ -102,11 +97,6 @@ public class BookService {
         }
         String oldValuePublisher = bookToEdit.getPublisher();
         String newValuePublisher = bookUpdatePublisherRequest.getPublisher();
-//        try {
-//            fieldName = String.valueOf(Book.class.getDeclaredField("publisher"));
-//        } catch (NoSuchFieldException e) {
-//            throw new FieldNotFoundException("publisher", Book.class.getName());
-//        }
         bookToEdit.setPublisher(bookUpdatePublisherRequest.getPublisher());
         bookRepository.saveAndFlush(bookToEdit);
         eventPublisher.publishEvent(new BookAuditEvent(this, Audit.UPDATE.name(), "publisher", oldValuePublisher, newValuePublisher, getUserForAudit(), bookToEdit));

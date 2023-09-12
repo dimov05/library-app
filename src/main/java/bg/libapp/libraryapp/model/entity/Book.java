@@ -25,17 +25,18 @@ public class Book {
             joinColumns = @JoinColumn(name = "isbn"),
             inverseJoinColumns = @JoinColumn(name = "genre_id"))
     private Set<Genre> genres;
-    @ManyToMany(cascade = CascadeType.PERSIST,fetch = FetchType.EAGER)
+    @ManyToMany(cascade = CascadeType.PERSIST, fetch = FetchType.EAGER)
     @JoinTable(name = "book_author",
             joinColumns = @JoinColumn(name = "isbn"),
             inverseJoinColumns = @JoinColumn(name = "author_id"))
     private Set<Author> authors;
     @OneToMany(mappedBy = "book")
     private Set<BookAudit> audits;
+
     public Book() {
     }
 
-    public Book(String isbn, String title, int year, String publisher, LocalDateTime dateAdded, Set<Genre> genres, Set<Author> authors,Set<BookAudit> audits) {
+    public Book(String isbn, String title, int year, String publisher, LocalDateTime dateAdded, Set<Genre> genres, Set<Author> authors, Set<BookAudit> audits) {
         this.isbn = isbn;
         this.title = title;
         this.year = year;
@@ -139,6 +140,7 @@ public class Book {
         this.audits = audits;
         return this;
     }
+
     public void addAudit(BookAudit audit) {
         if (this.audits == null) {
             this.audits = new HashSet<>();

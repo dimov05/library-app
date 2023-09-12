@@ -30,6 +30,7 @@ public class AppUserDetailsService implements UserDetailsService {
         return new AppUserDetails(
                 user.getUsername(),
                 user.getPassword(),
+                user.isActive(),
                 Collections.singleton(new SimpleGrantedAuthority("ROLE_" + Role.values()[user.getRole()])));
     }
 }

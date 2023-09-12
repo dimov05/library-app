@@ -1,47 +1,46 @@
 package bg.libapp.libraryapp.model.mappers;
 
-import bg.libapp.libraryapp.model.dto.user.UserEditDTO;
-import bg.libapp.libraryapp.model.dto.user.UserPasswordChangeDTO;
-import bg.libapp.libraryapp.model.dto.user.UserRegisterDTO;
-import bg.libapp.libraryapp.model.dto.user.UserViewDTO;
+import bg.libapp.libraryapp.model.dto.user.ChangePasswordRequest;
+import bg.libapp.libraryapp.model.dto.user.RegisterUserRequest;
+import bg.libapp.libraryapp.model.dto.user.UpdateUserRequest;
+import bg.libapp.libraryapp.model.dto.user.UserDTO;
 import bg.libapp.libraryapp.model.entity.User;
 import bg.libapp.libraryapp.model.enums.Role;
 
-import java.util.Optional;
-
 public class UserMapper {
-
-    public static User mapUserFromUserRegisterDTO(UserRegisterDTO userRegisterDTO) {
+    public static User mapToUser(RegisterUserRequest registerUserRequest) {
         return new User()
-                .setUsername(userRegisterDTO.getUsername())
-                .setFirstName(userRegisterDTO.getFirstName())
-                .setLastName(userRegisterDTO.getLastName())
-                .setDisplayName(userRegisterDTO.getDisplayName())
-                .setPassword(userRegisterDTO.getPassword()) // encoding in service
-                .setDateOfBirth(userRegisterDTO.getDateOfBirth())
+                .setUsername(registerUserRequest.getUsername())
+                .setFirstName(registerUserRequest.getFirstName())
+                .setLastName(registerUserRequest.getLastName())
+                .setDisplayName(registerUserRequest.getDisplayName())
+                .setPassword(registerUserRequest.getPassword()) // encoding in service
+                .setDateOfBirth(registerUserRequest.getDateOfBirth())
+                .setActive(true)
                 .setRole(Role.USER.ordinal());
     }
 
-    public static User mapUserFromUserEditDTO(UserEditDTO userEditDTO) {
+    public static User mapToUser(UpdateUserRequest updateUserRequest) {
         return new User()
-                .setFirstName(userEditDTO.getFirstName())
-                .setLastName(userEditDTO.getLastName())
-                .setDisplayName(userEditDTO.getDisplayName());
+                .setFirstName(updateUserRequest.getFirstName())
+                .setLastName(updateUserRequest.getLastName())
+                .setDisplayName(updateUserRequest.getDisplayName());
     }
 
-    public static User mapUserFromUserPasswordChangeDTO(UserPasswordChangeDTO userPasswordChangeDTO) {
+    public static User mapToUser(ChangePasswordRequest changePasswordRequest) {
         return new User()
-                .setPassword(userPasswordChangeDTO.getNewPassword());
+                .setPassword(changePasswordRequest.getNewPassword());
     }
 
-    public static UserViewDTO mapViewDTOFromUser(User user) {
-        return new UserViewDTO()
+    public static UserDTO mapToUserDTO(User user) {
+        return new UserDTO()
                 .setId(user.getId())
                 .setUsername(user.getUsername())
                 .setFirstName(user.getFirstName())
                 .setLastName(user.getLastName())
                 .setDisplayName(user.getDisplayName())
                 .setDateOfBirth(user.getDateOfBirth())
-                .setRole(Role.values()[user.getRole()].name());
+                .setRole(Role.values()[user.getRole()].name())
+                .setActive(user.isActive());
     }
 }
