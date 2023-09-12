@@ -30,7 +30,7 @@ public class Book {
             joinColumns = @JoinColumn(name = "isbn"),
             inverseJoinColumns = @JoinColumn(name = "author_id"))
     private Set<Author> authors;
-    @OneToMany(mappedBy = "book")
+    @OneToMany(mappedBy = "book",cascade = CascadeType.ALL)
     private Set<BookAudit> audits;
 
     public Book() {

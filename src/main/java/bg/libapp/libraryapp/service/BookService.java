@@ -26,6 +26,9 @@ import org.springframework.stereotype.Service;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static bg.libapp.libraryapp.model.constants.ApplicationConstants.PUBLISHER_BOOK_FIELD;
+import static bg.libapp.libraryapp.model.constants.ApplicationConstants.YEAR_BOOK_FIELD;
+
 @Service
 @Transactional
 public class BookService {
@@ -73,7 +76,7 @@ public class BookService {
         }
         BookDTO bookToReturn = BookMapper.mapToBookDTO(bookToDelete);
         bookRepository.delete(bookToDelete);
-        eventPublisher.publishEvent(new BookAuditEvent(this, Audit.DELETE.name(), null, null, getJsonOfBook(bookToDelete), getUserForAudit(), bookToDelete));
+//        eventPublisher.publishEvent(new BookAuditEvent(this, Audit.DELETE.name(), null, null, getJsonOfBook(bookToDelete), getUserForAudit(), bookToDelete));
         return bookToReturn;
     }
 
@@ -86,7 +89,7 @@ public class BookService {
         String newValueYear = String.valueOf(bookUpdateYearRequest.getYear());
         bookToEdit.setYear(bookUpdateYearRequest.getYear());
         bookRepository.saveAndFlush(bookToEdit);
-        eventPublisher.publishEvent(new BookAuditEvent(this, Audit.UPDATE.name(), "year", oldValueYear, newValueYear, getUserForAudit(), bookToEdit));
+        eventPublisher.publishEvent(new BookAuditEvent(this, Audit.UPDATE.name(), YEAR_BOOK_FIELD, oldValueYear, newValueYear, getUserForAudit(), bookToEdit));
         return BookMapper.mapToBookDTO(bookToEdit);
     }
 
@@ -99,7 +102,7 @@ public class BookService {
         String newValuePublisher = bookUpdatePublisherRequest.getPublisher();
         bookToEdit.setPublisher(bookUpdatePublisherRequest.getPublisher());
         bookRepository.saveAndFlush(bookToEdit);
-        eventPublisher.publishEvent(new BookAuditEvent(this, Audit.UPDATE.name(), "publisher", oldValuePublisher, newValuePublisher, getUserForAudit(), bookToEdit));
+        eventPublisher.publishEvent(new BookAuditEvent(this, Audit.UPDATE.name(), PUBLISHER_BOOK_FIELD, oldValuePublisher, newValuePublisher, getUserForAudit(), bookToEdit));
         return BookMapper.mapToBookDTO(bookToEdit);
     }
 

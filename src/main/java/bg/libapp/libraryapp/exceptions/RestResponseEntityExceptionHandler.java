@@ -13,7 +13,7 @@ public class RestResponseEntityExceptionHandler
         extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(value
-            = {IllegalArgumentException.class, IllegalStateException.class, BookNotFoundException.class, UserWithThisUsernameAlreadyExistsException.class, CannotProcessJsonOfEntity.class, AuthorNotFoundException.class, FieldNotFoundException.class, GenreNotFoundException.class, BookAlreadyAddedException.class, UserNotFoundException.class})
+            = {IllegalArgumentException.class, IllegalStateException.class, BookNotFoundException.class, UserWithThisUsernameAlreadyExistsException.class, CannotProcessJsonOfEntity.class, AuthorNotFoundException.class, FieldNotFoundException.class, GenreNotFoundException.class, BookAlreadyAddedException.class, UserNotFoundException.class, UserIsAlreadyActivatedException.class, UserIsAlreadyDeactivatedException.class})
     protected ResponseEntity<Object> handleConflict(
             RuntimeException ex, WebRequest request) {
         String bodyOfResponse = ex.getMessage();
