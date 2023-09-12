@@ -2,7 +2,6 @@ package bg.libapp.libraryapp.service;
 
 import bg.libapp.libraryapp.event.BookAuditEvent;
 import bg.libapp.libraryapp.exceptions.*;
-import bg.libapp.libraryapp.model.dto.author.AuthorRequest;
 import bg.libapp.libraryapp.model.dto.book.*;
 import bg.libapp.libraryapp.model.entity.Author;
 import bg.libapp.libraryapp.model.entity.Book;
@@ -39,13 +38,16 @@ public class BookService {
     private final UserRepository userRepository;
     private final ObjectMapper mapper;
 
+    private final AuthorService authorService;
+
     @Autowired
-    public BookService(BookRepository bookRepository, AuthorRepository authorRepository, GenreRepository genreRepository, ApplicationEventPublisher eventPublisher, UserRepository userRepository) {
+    public BookService(BookRepository bookRepository, AuthorRepository authorRepository, GenreRepository genreRepository, ApplicationEventPublisher eventPublisher, UserRepository userRepository, AuthorService authorService) {
         this.bookRepository = bookRepository;
         this.authorRepository = authorRepository;
         this.genreRepository = genreRepository;
         this.eventPublisher = eventPublisher;
         this.userRepository = userRepository;
+        this.authorService = authorService;
         this.mapper = new ObjectMapper().registerModule(new JavaTimeModule());
     }
 
@@ -62,7 +64,7 @@ public class BookService {
                 .collect(Collectors.toSet()));
         book.setAuthors(bookAddRequest.getAuthors()
                 .stream()
-                .map(this::findOrCreate)
+                .map(authorService::findOrCreate)
                 .collect(Collectors.toSet()));
         bookRepository.saveAndFlush(book);
         eventPublisher.publishEvent(new BookAuditEvent(this, Audit.ADD.name(), null, null, getJsonOfBook(book), getUserForAudit(), book));
@@ -76,7 +78,6 @@ public class BookService {
         }
         BookDTO bookToReturn = BookMapper.mapToBookDTO(bookToDelete);
         bookRepository.delete(bookToDelete);
-//        eventPublisher.publishEvent(new BookAuditEvent(this, Audit.DELETE.name(), null, null, getJsonOfBook(bookToDelete), getUserForAudit(), bookToDelete));
         return bookToReturn;
     }
 
@@ -87,6 +88,9 @@ public class BookService {
         }
         String oldValueYear = String.valueOf(bookToEdit.getYear());
         String newValueYear = String.valueOf(bookUpdateYearRequest.getYear());
+        if (oldValueYear.equals(newValueYear)) {
+            throw new OldYearEqualsNewYearException(newValueYear);
+        }
         bookToEdit.setYear(bookUpdateYearRequest.getYear());
         bookRepository.saveAndFlush(bookToEdit);
         eventPublisher.publishEvent(new BookAuditEvent(this, Audit.UPDATE.name(), YEAR_BOOK_FIELD, oldValueYear, newValueYear, getUserForAudit(), bookToEdit));
@@ -100,6 +104,9 @@ public class BookService {
         }
         String oldValuePublisher = bookToEdit.getPublisher();
         String newValuePublisher = bookUpdatePublisherRequest.getPublisher();
+        if (oldValuePublisher.equals(newValuePublisher)) {
+            throw new OldPublisherEqualsNewPublisherException(newValuePublisher);
+        }
         bookToEdit.setPublisher(bookUpdatePublisherRequest.getPublisher());
         bookRepository.saveAndFlush(bookToEdit);
         eventPublisher.publishEvent(new BookAuditEvent(this, Audit.UPDATE.name(), PUBLISHER_BOOK_FIELD, oldValuePublisher, newValuePublisher, getUserForAudit(), bookToEdit));
@@ -141,15 +148,6 @@ public class BookService {
                 .stream()
                 .map(BookMapper::mapToBookExtendedDTO)
                 .collect(Collectors.toSet());
-    }
-
-    private Author findOrCreate(AuthorRequest author) {
-        Author searchedAuthor = this.authorRepository.findAuthorByFirstNameAndLastName(author.getFirstName(), author.getLastName());
-        return searchedAuthor == null
-                ? authorRepository.saveAndFlush(new Author()
-                .setFirstName(author.getFirstName())
-                .setLastName(author.getLastName()))
-                : searchedAuthor;
     }
 
     private User getUserForAudit() {
