@@ -29,7 +29,7 @@ public class UserController {
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_MODERATOR') or authentication.name == @userService.getUsernameById(#id)")
     public ResponseEntity<UserDTO> getUserById(@PathVariable("id") Long id) {
-        UserDTO userDTO = userService.findViewDTOById(id);
+        UserDTO userDTO = userService.findUserById(id);
         String principal = SecurityContextHolder.getContext().getAuthentication().getName();
         System.out.println(principal);
         if (userDTO != null) {
@@ -42,7 +42,7 @@ public class UserController {
     @GetMapping("")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_MODERATOR')")
     public ResponseEntity<List<UserDTO>> getAllUsers() {
-        return new ResponseEntity<>(userService.findAllUsersViewDTO(), HttpStatus.OK);
+        return new ResponseEntity<>(userService.findAllUsers(), HttpStatus.OK);
     }
 
 

@@ -43,12 +43,12 @@ public class UserService {
         }
     }
 
-    public UserDTO findViewDTOById(long id) {
+    public UserDTO findUserById(long id) {
         Optional<User> user = userRepository.findById(id);
         return user.map(UserMapper::mapToUserDTO).orElse(null);
     }
 
-    public List<UserDTO> findAllUsersViewDTO() {
+    public List<UserDTO> findAllUsers() {
         List<User> users = userRepository.findAll();
         return users
                 .stream()
@@ -59,7 +59,7 @@ public class UserService {
     public UserDTO editUserAndSave(UpdateUserRequest updateUserRequest, long id) {
         User oldUser = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
-        editUserWithUserEditDTOData(updateUserRequest, oldUser);
+        editUserWithUpdateUserRequestData(updateUserRequest, oldUser);
         userRepository.saveAndFlush(oldUser);
         return UserMapper.mapToUserDTO(oldUser);
     }
@@ -86,7 +86,7 @@ public class UserService {
                 .getUsername();
     }
 
-    private static void editUserWithUserEditDTOData(UpdateUserRequest updateUserRequest, User oldUser) {
+    private static void editUserWithUpdateUserRequestData(UpdateUserRequest updateUserRequest, User oldUser) {
         oldUser
                 .setFirstName(updateUserRequest.getFirstName())
                 .setLastName(updateUserRequest.getLastName())

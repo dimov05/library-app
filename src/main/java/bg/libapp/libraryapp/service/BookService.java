@@ -1,32 +1,27 @@
 package bg.libapp.libraryapp.service;
 
-import bg.libapp.libraryapp.event.BookAuditEvent;
+import bg.libapp.libraryapp.event.SaveBookAuditEvent;
+import bg.libapp.libraryapp.event.UpdatePublisherBookAuditEvent;
+import bg.libapp.libraryapp.event.UpdateYearBookAuditEvent;
 import bg.libapp.libraryapp.exceptions.*;
 import bg.libapp.libraryapp.model.dto.book.*;
 import bg.libapp.libraryapp.model.entity.Author;
 import bg.libapp.libraryapp.model.entity.Book;
 import bg.libapp.libraryapp.model.entity.Genre;
-import bg.libapp.libraryapp.model.entity.User;
-import bg.libapp.libraryapp.model.enums.Audit;
 import bg.libapp.libraryapp.model.mappers.BookMapper;
 import bg.libapp.libraryapp.repository.AuthorRepository;
 import bg.libapp.libraryapp.repository.BookRepository;
 import bg.libapp.libraryapp.repository.GenreRepository;
-import bg.libapp.libraryapp.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static bg.libapp.libraryapp.model.constants.ApplicationConstants.PUBLISHER_BOOK_FIELD;
-import static bg.libapp.libraryapp.model.constants.ApplicationConstants.YEAR_BOOK_FIELD;
 
 @Service
 @Transactional
@@ -35,18 +30,16 @@ public class BookService {
     private final AuthorRepository authorRepository;
     private final GenreRepository genreRepository;
     private final ApplicationEventPublisher eventPublisher;
-    private final UserRepository userRepository;
     private final ObjectMapper mapper;
 
     private final AuthorService authorService;
 
     @Autowired
-    public BookService(BookRepository bookRepository, AuthorRepository authorRepository, GenreRepository genreRepository, ApplicationEventPublisher eventPublisher, UserRepository userRepository, AuthorService authorService) {
+    public BookService(BookRepository bookRepository, AuthorRepository authorRepository, GenreRepository genreRepository, ApplicationEventPublisher eventPublisher, AuthorService authorService) {
         this.bookRepository = bookRepository;
         this.authorRepository = authorRepository;
         this.genreRepository = genreRepository;
         this.eventPublisher = eventPublisher;
-        this.userRepository = userRepository;
         this.authorService = authorService;
         this.mapper = new ObjectMapper().registerModule(new JavaTimeModule());
     }
@@ -67,7 +60,7 @@ public class BookService {
                 .map(authorService::findOrCreate)
                 .collect(Collectors.toSet()));
         bookRepository.saveAndFlush(book);
-        eventPublisher.publishEvent(new BookAuditEvent(this, Audit.ADD.name(), null, null, getJsonOfBook(book), getUserForAudit(), book));
+        eventPublisher.publishEvent(new SaveBookAuditEvent(book, getJsonOfBook(book)));
         return BookMapper.mapToBookExtendedDTO(book);
     }
 
@@ -88,12 +81,11 @@ public class BookService {
         }
         String oldValueYear = String.valueOf(bookToEdit.getYear());
         String newValueYear = String.valueOf(bookUpdateYearRequest.getYear());
-        if (oldValueYear.equals(newValueYear)) {
-            throw new OldYearEqualsNewYearException(newValueYear);
+        if (!oldValueYear.equals(newValueYear)) {
+            bookToEdit.setYear(bookUpdateYearRequest.getYear());
+            bookRepository.saveAndFlush(bookToEdit);
+            eventPublisher.publishEvent(new UpdateYearBookAuditEvent(bookToEdit, oldValueYear));
         }
-        bookToEdit.setYear(bookUpdateYearRequest.getYear());
-        bookRepository.saveAndFlush(bookToEdit);
-        eventPublisher.publishEvent(new BookAuditEvent(this, Audit.UPDATE.name(), YEAR_BOOK_FIELD, oldValueYear, newValueYear, getUserForAudit(), bookToEdit));
         return BookMapper.mapToBookDTO(bookToEdit);
     }
 
@@ -104,12 +96,11 @@ public class BookService {
         }
         String oldValuePublisher = bookToEdit.getPublisher();
         String newValuePublisher = bookUpdatePublisherRequest.getPublisher();
-        if (oldValuePublisher.equals(newValuePublisher)) {
-            throw new OldPublisherEqualsNewPublisherException(newValuePublisher);
+        if (!oldValuePublisher.equals(newValuePublisher)) {
+            bookToEdit.setPublisher(bookUpdatePublisherRequest.getPublisher());
+            bookRepository.saveAndFlush(bookToEdit);
+            eventPublisher.publishEvent(new UpdatePublisherBookAuditEvent(bookToEdit, oldValuePublisher));
         }
-        bookToEdit.setPublisher(bookUpdatePublisherRequest.getPublisher());
-        bookRepository.saveAndFlush(bookToEdit);
-        eventPublisher.publishEvent(new BookAuditEvent(this, Audit.UPDATE.name(), PUBLISHER_BOOK_FIELD, oldValuePublisher, newValuePublisher, getUserForAudit(), bookToEdit));
         return BookMapper.mapToBookDTO(bookToEdit);
     }
 
@@ -150,10 +141,6 @@ public class BookService {
                 .collect(Collectors.toSet());
     }
 
-    private User getUserForAudit() {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        return userRepository.findByUsername(username).orElseThrow();
-    }
 
     private String getJsonOfBook(Book book) {
         String json;
