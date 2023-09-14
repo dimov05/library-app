@@ -5,6 +5,8 @@ import bg.libapp.libraryapp.model.dto.author.AuthorRequest;
 import bg.libapp.libraryapp.model.entity.Author;
 import bg.libapp.libraryapp.model.mappers.AuthorMapper;
 import bg.libapp.libraryapp.repository.AuthorRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +16,8 @@ import java.util.stream.Collectors;
 @Service
 public class AuthorService {
     private final AuthorRepository authorRepository;
+    private final Logger logger = LoggerFactory.getLogger(AuthorService.class);
+
 
     @Autowired
     public AuthorService(AuthorRepository authorRepository) {
@@ -21,16 +25,18 @@ public class AuthorService {
     }
 
     public Set<AuthorExtendedDTO> getAllAuthors() {
+        logger.info("getAllAuthors method accessed");
         return authorRepository.findAll()
                 .stream().map(AuthorMapper::mapToAuthorExtendedDTO)
                 .collect(Collectors.toSet());
     }
+
     public Author findOrCreate(AuthorRequest author) {
-        Author searchedAuthor = this.authorRepository.findAuthorByFirstNameAndLastName(author.getFirstName(), author.getLastName());
-        return searchedAuthor == null
-                ? authorRepository.saveAndFlush(new Author()
-                .setFirstName(author.getFirstName())
-                .setLastName(author.getLastName()))
-                : searchedAuthor;
+        logger.info("findOrCreate Author method accessed by AuthorService");
+        return this.authorRepository.findAuthorByFirstNameAndLastName(author.getFirstName(), author.getLastName())
+                .orElse(authorRepository.saveAndFlush(
+                        new Author()
+                        .setFirstName(author.getFirstName())
+                        .setLastName(author.getLastName())));
     }
 }
