@@ -2,9 +2,10 @@ package bg.libapp.libraryapp.event;
 
 import bg.libapp.libraryapp.model.entity.Book;
 import bg.libapp.libraryapp.model.entity.User;
+import bg.libapp.libraryapp.model.enums.AuditEnum;
 
-public class BaseBookAuditEvent{
-    private String operationType;
+public class BaseBookAuditEvent {
+    private AuditEnum operationType;
     private User user;
     private Book book;
 
@@ -12,17 +13,19 @@ public class BaseBookAuditEvent{
         this.book = book;
     }
 
-    public BaseBookAuditEvent(String operationType, User user, Book book) {
+    public BaseBookAuditEvent() {
+    }
+
+    public BaseBookAuditEvent(AuditEnum operationType, Book book) {
         this.operationType = operationType;
-        this.user = user;
         this.book = book;
     }
 
-    public String getOperationType() {
+    public AuditEnum getOperationType() {
         return operationType;
     }
 
-    public void setOperationType(String operationType) {
+    public void setOperationType(AuditEnum operationType) {
         this.operationType = operationType;
     }
 
