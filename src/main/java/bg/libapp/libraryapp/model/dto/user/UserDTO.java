@@ -1,10 +1,8 @@
 package bg.libapp.libraryapp.model.dto.user;
 
-import jakarta.persistence.Column;
-
 import java.time.LocalDate;
 
-public class UserViewDTO {
+public class UserDTO {
     private long id;
     private String username;
 
@@ -18,7 +16,7 @@ public class UserViewDTO {
 
     private String role;
 
-    public UserViewDTO() {
+    public UserDTO() {
     }
 
     public long getId() {
@@ -49,37 +47,37 @@ public class UserViewDTO {
         return role;
     }
 
-    public UserViewDTO setId(long id) {
+    public UserDTO setId(long id) {
         this.id = id;
         return this;
     }
 
-    public UserViewDTO setUsername(String username) {
+    public UserDTO setUsername(String username) {
         this.username = username;
         return this;
     }
 
-    public UserViewDTO setFirstName(String firstName) {
+    public UserDTO setFirstName(String firstName) {
         this.firstName = firstName;
         return this;
     }
 
-    public UserViewDTO setLastName(String lastName) {
+    public UserDTO setLastName(String lastName) {
         this.lastName = lastName;
         return this;
     }
 
-    public UserViewDTO setDisplayName(String displayName) {
+    public UserDTO setDisplayName(String displayName) {
         this.displayName = displayName;
         return this;
     }
 
-    public UserViewDTO setDateOfBirth(LocalDate dateOfBirth) {
+    public UserDTO setDateOfBirth(LocalDate dateOfBirth) {
         this.dateOfBirth = dateOfBirth;
         return this;
     }
 
-    public UserViewDTO setRole(String role) {
+    public UserDTO setRole(String role) {
         this.role = role;
         return this;
     }
