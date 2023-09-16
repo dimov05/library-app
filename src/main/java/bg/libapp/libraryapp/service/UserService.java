@@ -59,7 +59,7 @@ public class UserService {
     public UserDTO editUserAndSave(UpdateUserRequest updateUserRequest, long id) {
         User oldUser = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
-        editUserWithUpdateUserRequestData(updateUserRequest, oldUser);
+        editUser(updateUserRequest, oldUser);
         userRepository.saveAndFlush(oldUser);
         return UserMapper.mapToUserDTO(oldUser);
     }
@@ -86,7 +86,7 @@ public class UserService {
                 .getUsername();
     }
 
-    private static void editUserWithUpdateUserRequestData(UpdateUserRequest updateUserRequest, User oldUser) {
+    private static void editUser(UpdateUserRequest updateUserRequest, User oldUser) {
         oldUser
                 .setFirstName(updateUserRequest.getFirstName())
                 .setLastName(updateUserRequest.getLastName())
