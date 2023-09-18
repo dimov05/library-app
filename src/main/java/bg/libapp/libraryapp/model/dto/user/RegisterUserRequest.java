@@ -108,4 +108,15 @@ public class RegisterUserRequest {
         this.dateOfBirth = dateOfBirth;
         return this;
     }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "username='" + username + '\'' +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", displayName='" + displayName + '\'' +
+                ", dateOfBirth=" + dateOfBirth +
+                '}';
+    }
 }

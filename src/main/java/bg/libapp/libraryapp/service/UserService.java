@@ -33,7 +33,7 @@ public class UserService {
     }
 
     public UserDTO save(RegisterUserRequest registerUserRequest) {
-        logger.info("Register user with username: '" + registerUserRequest.getUsername() + "'");
+        logger.info("Register user with this data: '" + registerUserRequest + "'");
         existsByUsername(registerUserRequest.getUsername());
         User userToSave = UserMapper.mapToUser(registerUserRequest);
         userToSave.setPassword(passwordEncoder.encode(registerUserRequest.getPassword()));
@@ -66,7 +66,7 @@ public class UserService {
     }
 
     public UserDTO editUserAndSave(UpdateUserRequest updateUserRequest, long id) {
-        logger.info("editUserAndSave method accessed with user with id '" + id + "'");
+        logger.info("editUserAndSave method accessed with user with id '" + id + "' and params: " + updateUserRequest);
         User oldUser = userRepository.findById(id)
                 .orElseThrow(() -> logAndThrowException(id));
         editUserWithUpdateUserRequestData(updateUserRequest, oldUser);

@@ -23,4 +23,11 @@ public class BookUpdatePublisherRequest {
         this.publisher = publisher;
         return this;
     }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "publisher='" + publisher + '\'' +
+                '}';
+    }
 }

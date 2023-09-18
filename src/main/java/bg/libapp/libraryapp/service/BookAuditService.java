@@ -9,6 +9,8 @@ import bg.libapp.libraryapp.model.mappers.BookAuditMapper;
 import bg.libapp.libraryapp.repository.BookAuditRepository;
 import bg.libapp.libraryapp.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,8 @@ import static bg.libapp.libraryapp.model.constants.ApplicationConstants.YEAR_BOO
 @Service
 @Transactional
 public class BookAuditService {
+    private final Logger logger = LoggerFactory.getLogger(BookAuditService.class);
+
     private final UserRepository userRepository;
     private final BookAuditRepository bookAuditRepository;
 
@@ -33,6 +37,7 @@ public class BookAuditService {
         event.setNewValue(String.valueOf(event.getBook().getYear()));
         event.setOperationType(Audit.UPDATE.name());
         event.setFieldName(YEAR_BOOK_FIELD);
+        logger.info("Creating an event for updating year of book with params: " + event);
         bookAuditRepository.saveAndFlush(BookAuditMapper.mapToBookAudit(event));
     }
 
@@ -41,6 +46,7 @@ public class BookAuditService {
         event.setNewValue(String.valueOf(event.getBook().getYear()));
         event.setOperationType(Audit.UPDATE.name());
         event.setFieldName(PUBLISHER_BOOK_FIELD);
+        logger.info("Creating an event for updating publisher of book with params: " + event);
         bookAuditRepository.saveAndFlush(BookAuditMapper.mapToBookAudit(event));
     }
 
@@ -48,6 +54,7 @@ public class BookAuditService {
         event.setUser(getUserForAudit());
         event.setNewValue(event.getNewValue());
         event.setOperationType(Audit.ADD.name());
+        logger.info("Creating an event for saving a new book with params: " + event);
         bookAuditRepository.saveAndFlush(BookAuditMapper.mapToBookAudit(event));
     }
 

@@ -32,7 +32,7 @@ public class AuthorService {
     }
 
     public Author findOrCreate(AuthorRequest author) {
-        logger.info("findOrCreate Author method accessed by AuthorService");
+        logger.info("findOrCreate Author method accessed by AuthorService with params: " + author);
         return this.authorRepository.findAuthorByFirstNameAndLastName(author.getFirstName(), author.getLastName())
                 .orElse(authorRepository.saveAndFlush(
                         new Author()

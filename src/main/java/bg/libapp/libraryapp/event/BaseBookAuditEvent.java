@@ -3,7 +3,7 @@ package bg.libapp.libraryapp.event;
 import bg.libapp.libraryapp.model.entity.Book;
 import bg.libapp.libraryapp.model.entity.User;
 
-public class BaseBookAuditEvent{
+public class BaseBookAuditEvent {
     private String operationType;
     private User user;
     private Book book;
@@ -40,5 +40,12 @@ public class BaseBookAuditEvent{
 
     public void setBook(Book book) {
         this.book = book;
+    }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "operationType='" + operationType + '\'' +
+                '}';
     }
 }

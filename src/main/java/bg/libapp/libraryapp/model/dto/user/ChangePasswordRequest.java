@@ -47,4 +47,13 @@ public class ChangePasswordRequest {
         this.confirmNewPassword = confirmNewPassword;
         return this;
     }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "oldPassword='" + oldPassword + '\'' +
+                ", newPassword='" + newPassword + '\'' +
+                ", confirmNewPassword='" + confirmNewPassword + '\'' +
+                '}';
+    }
 }

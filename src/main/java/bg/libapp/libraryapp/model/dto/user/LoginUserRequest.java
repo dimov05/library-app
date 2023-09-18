@@ -31,4 +31,12 @@ public class LoginUserRequest {
         this.password = password;
         return this;
     }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "username='" + username + '\'' +
+                ", password='" + password + '\'' +
+                '}';
+    }
 }

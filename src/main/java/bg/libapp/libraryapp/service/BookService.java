@@ -69,7 +69,7 @@ public class BookService {
                 .map(authorService::findOrCreate)
                 .collect(Collectors.toSet()));
         bookRepository.saveAndFlush(book);
-        logger.info("Save a new book with isbn '" + bookAddRequest.getIsbn() + "'");
+        logger.info("Save a new book with isbn '" + bookAddRequest.getIsbn() + "' and params: " + bookAddRequest);
         eventPublisher.publishEvent(new SaveBookAuditEvent(book, getJsonOfBook(book)));
         return BookMapper.mapToBookExtendedDTO(book);
     }
@@ -88,7 +88,6 @@ public class BookService {
     }
 
     public BookDTO updateYear(String isbn, BookUpdateYearRequest bookUpdateYearRequest) {
-
         Book bookToEdit = bookRepository.findByIsbn(isbn)
                 .orElseThrow(() -> {
                     logger.error(getBookNotFoundMessage(isbn));
@@ -100,7 +99,7 @@ public class BookService {
             bookToEdit.setYear(bookUpdateYearRequest.getYear());
             bookRepository.saveAndFlush(bookToEdit);
             eventPublisher.publishEvent(new UpdateYearBookAuditEvent(bookToEdit, oldValueYear));
-            logger.info("Updated year of book with isbn '" + isbn + "'");
+            logger.info("Updated year of book with isbn '" + isbn + "' and params: " + bookUpdateYearRequest);
         }
         return BookMapper.mapToBookDTO(bookToEdit);
     }
@@ -117,7 +116,7 @@ public class BookService {
             bookToEdit.setPublisher(bookUpdatePublisherRequest.getPublisher());
             bookRepository.saveAndFlush(bookToEdit);
             eventPublisher.publishEvent(new UpdatePublisherBookAuditEvent(bookToEdit, oldValuePublisher));
-            logger.info("Updated publisher of book with isbn '" + isbn + "'");
+            logger.info("Updated publisher of book with isbn '" + isbn + "' and params: " + bookUpdatePublisherRequest);
         }
         return BookMapper.mapToBookDTO(bookToEdit);
     }
@@ -146,6 +145,7 @@ public class BookService {
                     logger.error("Author with this name '" + firstName + " " + lastName + "' was not found!");
                     return new AuthorNotFoundException(firstName, lastName);
                 });
+        logger.info("getAllBooksByAuthorFirstAndLastName accessed with author first and lastname: '" + firstName + lastName + "'");
         return bookRepository.findAllByAuthorsContaining(author)
                 .stream()
                 .map(BookMapper::mapToBookExtendedDTO)

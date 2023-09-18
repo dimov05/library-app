@@ -72,4 +72,12 @@ public class BookExtendedDTO extends BookDTO {
         super.setGenres(genres);
         return this;
     }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "dateAdded=" + dateAdded +
+                ", authors=" + authors +
+                "} " + super.toString();
+    }
 }

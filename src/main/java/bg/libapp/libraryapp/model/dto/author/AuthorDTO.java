@@ -30,4 +30,12 @@ public class AuthorDTO {
         this.lastName = lastName;
         return this;
     }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                '}';
+    }
 }
