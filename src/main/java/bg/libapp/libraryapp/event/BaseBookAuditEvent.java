@@ -44,4 +44,11 @@ public class BaseBookAuditEvent {
     public void setBook(Book book) {
         this.book = book;
     }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "operationType='" + operationType + '\'' +
+                '}';
+    }
 }

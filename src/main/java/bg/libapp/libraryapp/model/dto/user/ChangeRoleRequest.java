@@ -23,4 +23,11 @@ public class ChangeRoleRequest {
         this.role = role;
         return this;
     }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "role=" + role +
+                '}';
+    }
 }

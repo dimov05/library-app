@@ -35,4 +35,12 @@ public class AuthorExtendedDTO extends AuthorDTO {
         super.setLastName(lastName);
         return this;
     }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "books=" + books +
+                "} " + super.toString();
+    }
+
 }

@@ -16,6 +16,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -26,6 +28,9 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class BookService {
+
+    private final Logger logger = LoggerFactory.getLogger(BookService.class);
+
     private final BookRepository bookRepository;
     private final AuthorRepository authorRepository;
     private final GenreRepository genreRepository;
@@ -46,73 +51,88 @@ public class BookService {
 
     public BookExtendedDTO saveNewBook(BookAddRequest bookAddRequest) {
         String isbnOfBook = bookAddRequest.getIsbn();
-        Book book = bookRepository.findByIsbn(isbnOfBook);
-        if (book != null) {
+        if (bookRepository.existsByIsbn(isbnOfBook)) {
+            logger.error("Book with this isbn is already added");
             throw new BookAlreadyAddedException(isbnOfBook);
         }
-        book = BookMapper.mapToBook(bookAddRequest);
+        Book book = BookMapper.mapToBook(bookAddRequest);
         book.setGenres(bookAddRequest.getGenres()
                 .stream()
-                .map(genre -> this.genreRepository.findByName(genre.getName()))
+                .map(genre -> this.genreRepository.findByName(genre.getName())
+                        .orElseThrow(() -> {
+                            logger.error("There are no genres with this name '" + genre.getName() + "'");
+                            return new GenreNotFoundException(genre.getName());
+                        }))
                 .collect(Collectors.toSet()));
         book.setAuthors(bookAddRequest.getAuthors()
                 .stream()
                 .map(authorService::findOrCreate)
                 .collect(Collectors.toSet()));
         bookRepository.saveAndFlush(book);
+        logger.info("Save a new book with isbn '" + bookAddRequest.getIsbn() + "' and params: " + bookAddRequest);
         eventPublisher.publishEvent(new SaveBookAuditEvent(book, getJsonOfBook(book)));
         return BookMapper.mapToBookExtendedDTO(book);
     }
 
-    public BookDTO deleteById(String isbn) {
-        Book bookToDelete = bookRepository.findByIsbn(isbn);
-        if (bookToDelete == null) {
-            throw new BookNotFoundException(isbn);
-        }
+    public BookDTO deleteByIsbn(String isbn) {
+        Book bookToDelete = bookRepository.findByIsbn(isbn)
+                .orElseThrow(() -> {
+                    logger.error(getBookNotFoundMessage(isbn));
+                    return new BookNotFoundException(isbn);
+                });
         BookDTO bookToReturn = BookMapper.mapToBookDTO(bookToDelete);
         bookRepository.delete(bookToDelete);
+        logger.info("Delete book with isbn '" + isbn + "'");
+
         return bookToReturn;
     }
 
     public BookDTO updateYear(String isbn, BookUpdateYearRequest bookUpdateYearRequest) {
-        Book bookToEdit = bookRepository.findByIsbn(isbn);
-        if (bookToEdit == null) {
-            throw new BookNotFoundException(isbn);
-        }
+        Book bookToEdit = bookRepository.findByIsbn(isbn)
+                .orElseThrow(() -> {
+                    logger.error(getBookNotFoundMessage(isbn));
+                    return new BookNotFoundException(isbn);
+                });
         String oldValueYear = String.valueOf(bookToEdit.getYear());
         String newValueYear = String.valueOf(bookUpdateYearRequest.getYear());
         if (!oldValueYear.equals(newValueYear)) {
             bookToEdit.setYear(bookUpdateYearRequest.getYear());
             bookRepository.saveAndFlush(bookToEdit);
             eventPublisher.publishEvent(new UpdateYearBookAuditEvent(bookToEdit, oldValueYear));
+            logger.info("Updated year of book with isbn '" + isbn + "' and params: " + bookUpdateYearRequest);
         }
         return BookMapper.mapToBookDTO(bookToEdit);
     }
 
     public BookDTO updatePublisher(String isbn, BookUpdatePublisherRequest bookUpdatePublisherRequest) {
-        Book bookToEdit = bookRepository.findByIsbn(isbn);
-        if (bookToEdit == null) {
-            throw new BookNotFoundException(isbn);
-        }
+        Book bookToEdit = bookRepository.findByIsbn(isbn)
+                .orElseThrow(() -> {
+                    logger.error(getBookNotFoundMessage(isbn));
+                    return new BookNotFoundException(isbn);
+                });
         String oldValuePublisher = bookToEdit.getPublisher();
         String newValuePublisher = bookUpdatePublisherRequest.getPublisher();
         if (!oldValuePublisher.equals(newValuePublisher)) {
             bookToEdit.setPublisher(bookUpdatePublisherRequest.getPublisher());
             bookRepository.saveAndFlush(bookToEdit);
             eventPublisher.publishEvent(new UpdatePublisherBookAuditEvent(bookToEdit, oldValuePublisher));
+            logger.info("Updated publisher of book with isbn '" + isbn + "' and params: " + bookUpdatePublisherRequest);
         }
         return BookMapper.mapToBookDTO(bookToEdit);
     }
 
     public BookExtendedDTO findBookByIsbn(String isbn) {
-        Book book = bookRepository.findByIsbn(isbn);
-        if (book == null) {
-            throw new BookNotFoundException(isbn);
-        }
+        Book book = bookRepository.findByIsbn(isbn)
+                .orElseThrow(() -> {
+                    logger.error(getBookNotFoundMessage(isbn));
+                    return new BookNotFoundException(isbn);
+                });
+        logger.info("Find book with isbn '" + isbn + "'");
         return BookMapper.mapToBookExtendedDTO(book);
     }
 
     public Set<BookExtendedDTO> getAllBooks() {
+        logger.info("getAllBooks method is accessed");
         return bookRepository.findAll()
                 .stream()
                 .map(BookMapper::mapToBookExtendedDTO)
@@ -120,10 +140,12 @@ public class BookService {
     }
 
     public Set<BookExtendedDTO> getAllBooksByAuthorFirstAndLastName(String firstName, String lastName) {
-        Author author = authorRepository.findAuthorByFirstNameAndLastName(firstName, lastName);
-        if (author == null) {
-            throw new AuthorNotFoundException(firstName, lastName);
-        }
+        Author author = authorRepository.findAuthorByFirstNameAndLastName(firstName, lastName)
+                .orElseThrow(() -> {
+                    logger.error("Author with this name '" + firstName + " " + lastName + "' was not found!");
+                    return new AuthorNotFoundException(firstName, lastName);
+                });
+        logger.info("getAllBooksByAuthorFirstAndLastName accessed with author first and lastname: '" + firstName + lastName + "'");
         return bookRepository.findAllByAuthorsContaining(author)
                 .stream()
                 .map(BookMapper::mapToBookExtendedDTO)
@@ -131,10 +153,12 @@ public class BookService {
     }
 
     public Set<BookExtendedDTO> getAllBooksByGenre(String genre) {
-        Genre genreToCheck = genreRepository.findByName(genre);
-        if (genreToCheck == null) {
-            throw new GenreNotFoundException(genre);
-        }
+        logger.info("getAllBooksByGenre with genre = '" + genre + "' was accessed");
+        Genre genreToCheck = genreRepository.findByName(genre)
+                .orElseThrow(() -> {
+                    logger.error("There are no genres with this name '" + genre + "'");
+                    return new GenreNotFoundException(genre);
+                });
         return bookRepository.findBookByGenresContaining(genreToCheck)
                 .stream()
                 .map(BookMapper::mapToBookExtendedDTO)
@@ -150,5 +174,9 @@ public class BookService {
             throw new CannotProcessJsonOfEntity(book);
         }
         return json;
+    }
+
+    private static String getBookNotFoundMessage(String isbn) {
+        return "Book with this isbn '" + isbn + "' was not found!";
     }
 }

@@ -54,7 +54,7 @@ public class BookController {
 
     @DeleteMapping("/delete/{isbn}")
     public ResponseEntity<BookDTO> deleteBookById(@PathVariable("isbn") String isbn) {
-        return new ResponseEntity<>(bookService.deleteById(isbn), HttpStatus.OK);
+        return new ResponseEntity<>(bookService.deleteByIsbn(isbn), HttpStatus.OK);
     }
 
     @PutMapping("/year/{isbn}")

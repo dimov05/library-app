@@ -95,4 +95,16 @@ public class BookAddRequest {
         this.authors = authors;
         return this;
     }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "isbn='" + isbn + '\'' +
+                ", title='" + title + '\'' +
+                ", year=" + year +
+                ", publisher='" + publisher + '\'' +
+                ", genres=" + genres +
+                ", authors=" + authors +
+                '}';
+    }
 }

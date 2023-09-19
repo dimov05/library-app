@@ -36,4 +36,13 @@ public class UpdatePublisherBookAuditEvent extends BaseBookAuditEvent {
     public void setNewValue(String newValue) {
         this.newValue = newValue;
     }
+    @Override
+    public String toString() {
+        return "{" +
+                "fieldName='" + fieldName + '\'' +
+                ", oldValue='" + oldValue + '\'' +
+                ", newValue='" + newValue + '\'' +
+                ", operationType='" + this.getOperationType() + '\'' +
+                "}";
+    }
 }

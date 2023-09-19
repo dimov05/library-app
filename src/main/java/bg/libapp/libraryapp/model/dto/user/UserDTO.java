@@ -92,4 +92,18 @@ public class UserDTO {
         isActive = active;
         return this;
     }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", displayName='" + displayName + '\'' +
+                ", dateOfBirth=" + dateOfBirth +
+                ", role='" + role + '\'' +
+                ", isActive=" + isActive +
+                '}';
+    }
 }

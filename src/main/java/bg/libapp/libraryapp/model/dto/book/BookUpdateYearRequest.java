@@ -23,4 +23,11 @@ public class BookUpdateYearRequest {
         this.year = year;
         return this;
     }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "year=" + year +
+                '}';
+    }
 }

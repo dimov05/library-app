@@ -1,8 +1,8 @@
 package bg.libapp.libraryapp.web;
 
-import bg.libapp.libraryapp.model.dto.user.UpdateUserRequest;
 import bg.libapp.libraryapp.model.dto.user.ChangePasswordRequest;
 import bg.libapp.libraryapp.model.dto.user.ChangeRoleRequest;
+import bg.libapp.libraryapp.model.dto.user.UpdateUserRequest;
 import bg.libapp.libraryapp.model.dto.user.UserDTO;
 import bg.libapp.libraryapp.service.UserService;
 import jakarta.validation.Valid;
@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,20 +28,13 @@ public class UserController {
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_MODERATOR') or authentication.name == @userService.getUsernameById(#id)")
     public ResponseEntity<UserDTO> getUserById(@PathVariable("id") Long id) {
-        UserDTO userDTO = userService.findUserById(id);
-        String principal = SecurityContextHolder.getContext().getAuthentication().getName();
-        System.out.println(principal);
-        if (userDTO != null) {
-            return new ResponseEntity<>(userDTO, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
-        }
+        return new ResponseEntity<>(userService.getUserById(id), HttpStatus.OK);
     }
 
     @GetMapping("")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_MODERATOR')")
     public ResponseEntity<List<UserDTO>> getAllUsers() {
-        return new ResponseEntity<>(userService.findAllUsers(), HttpStatus.OK);
+        return new ResponseEntity<>(userService.getAllUsers(), HttpStatus.OK);
     }
 
 

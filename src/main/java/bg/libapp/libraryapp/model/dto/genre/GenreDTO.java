@@ -17,4 +17,11 @@ public class GenreDTO {
         this.name = name;
         return this;
     }
+
+    @Override
+    public String toString() {
+        return "GenreDTO{" +
+                "name='" + name + '\'' +
+                '}';
+    }
 }

@@ -21,4 +21,11 @@ public class SaveBookAuditEvent extends BaseBookAuditEvent {
     public void setNewValue(String newValue) {
         this.newValue = newValue;
     }
+
+    @Override
+    public String toString() {
+        return "{" + "newValue='" + newValue + '\'' +
+                ", operationType='" + super.getOperationType() + '\'' +
+                "}";
+    }
 }

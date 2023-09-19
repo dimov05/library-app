@@ -39,6 +39,7 @@ public class BookAuditService {
         event.setNewValue(String.valueOf(event.getBook().getYear()));
         event.setOperationType(AuditEnum.UPDATE);
         event.setFieldName(YEAR_BOOK_FIELD);
+        logger.info("Creating an event for updating year of book with params: " + event);
         bookAuditRepository.saveAndFlush(BookAuditMapper.mapToBookAudit(event));
     }
 
@@ -48,13 +49,14 @@ public class BookAuditService {
         event.setNewValue(String.valueOf(event.getBook().getPublisher()));
         event.setOperationType(AuditEnum.UPDATE);
         event.setFieldName(PUBLISHER_BOOK_FIELD);
+        logger.info("Creating an event for updating publisher of book with params: " + event);
         bookAuditRepository.saveAndFlush(BookAuditMapper.mapToBookAudit(event));
     }
 
     public void saveBook(SaveBookAuditEvent event) {
-        logger.info("Create and save an event for saving a new book");
         event.setUser(getUserForAudit());
         event.setNewValue(event.getNewValue());
+        logger.info("Creating an event for saving a new book with params: " + event);
         event.setOperationType(AuditEnum.ADD);
         bookAuditRepository.saveAndFlush(BookAuditMapper.mapToBookAudit(event));
     }

@@ -66,4 +66,15 @@ public class BookDTO {
         this.genres = genres;
         return this;
     }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "isbn='" + isbn + '\'' +
+                ", title='" + title + '\'' +
+                ", year=" + year +
+                ", publisher='" + publisher + '\'' +
+                ", genres=" + genres +
+                '}';
+    }
 }
