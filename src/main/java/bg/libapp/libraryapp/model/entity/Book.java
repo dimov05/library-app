@@ -20,21 +20,23 @@ public class Book {
     private String publisher;
     @Column(name = "date_added", nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime dateAdded;
-    @ManyToMany()
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "book_genre",
             joinColumns = @JoinColumn(name = "isbn"),
             inverseJoinColumns = @JoinColumn(name = "genre_id"))
     private Set<Genre> genres;
-    @ManyToMany(cascade = CascadeType.PERSIST)
+    @ManyToMany(cascade = CascadeType.PERSIST, fetch = FetchType.EAGER)
     @JoinTable(name = "book_author",
             joinColumns = @JoinColumn(name = "isbn"),
             inverseJoinColumns = @JoinColumn(name = "author_id"))
     private Set<Author> authors;
+    @OneToMany(mappedBy = "book",cascade = CascadeType.ALL)
+    private Set<BookAudit> audits;
 
     public Book() {
     }
 
-    public Book(String isbn, String title, int year, String publisher, LocalDateTime dateAdded, Set<Genre> genres, Set<Author> authors) {
+    public Book(String isbn, String title, int year, String publisher, LocalDateTime dateAdded, Set<Genre> genres, Set<Author> authors, Set<BookAudit> audits) {
         this.isbn = isbn;
         this.title = title;
         this.year = year;
@@ -42,6 +44,7 @@ public class Book {
         this.dateAdded = dateAdded;
         this.genres = genres;
         this.authors = authors;
+        this.audits = audits;
     }
 
     public String getIsbn() {
@@ -127,5 +130,25 @@ public class Book {
 
     public void removeGenre(Genre genre) {
         this.genres.remove(genre);
+    }
+
+    public Set<BookAudit> getAudits() {
+        return audits;
+    }
+
+    public Book setAudits(Set<BookAudit> audits) {
+        this.audits = audits;
+        return this;
+    }
+
+    public void addAudit(BookAudit audit) {
+        if (this.audits == null) {
+            this.audits = new HashSet<>();
+        }
+        this.audits.add(audit);
+    }
+
+    public void removeAudit(BookAudit audit) {
+        this.audits.remove(audit);
     }
 }

@@ -16,8 +16,8 @@ public class GenreService {
         this.genreRepository = genreRepository;
     }
 
-    public Set<GenreDTO> getAllGenresViewDTO() {
-        return genreRepository.findAll()
+    public Set<GenreDTO> getAllGenres() {
+        return this.genreRepository.findAll()
                 .stream()
                 .map(GenreMapper::mapToGenreDTO)
                 .collect(Collectors.toSet());

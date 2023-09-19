@@ -9,14 +9,17 @@ import java.util.Collection;
 public class AppUserDetails implements UserDetails, Serializable {
     private String username;
     private String password;
-private Collection<GrantedAuthority> authorities;
+
+    private boolean isActive;
+    private Collection<GrantedAuthority> authorities;
 
     public AppUserDetails() {
     }
 
-    public AppUserDetails(String username, String password, Collection<GrantedAuthority> authorities) {
+    public AppUserDetails(String username, String password, boolean isActive, Collection<GrantedAuthority> authorities) {
         this.username = username;
         this.password = password;
+        this.isActive = isActive;
         this.authorities = authorities;
     }
 
@@ -24,10 +27,12 @@ private Collection<GrantedAuthority> authorities;
         this.username = username;
         return this;
     }
+
     public AppUserDetails setPassword(String password) {
         this.password = password;
         return this;
     }
+
     public AppUserDetails setAuthorities(Collection<GrantedAuthority> authorities) {
         this.authorities = authorities;
         return this;
@@ -65,6 +70,6 @@ private Collection<GrantedAuthority> authorities;
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return isActive;
     }
 }

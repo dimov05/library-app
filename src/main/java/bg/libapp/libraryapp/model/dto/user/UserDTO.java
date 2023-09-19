@@ -16,6 +16,8 @@ public class UserDTO {
 
     private String role;
 
+    private boolean isActive;
+
     public UserDTO() {
     }
 
@@ -79,6 +81,15 @@ public class UserDTO {
 
     public UserDTO setRole(String role) {
         this.role = role;
+        return this;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public UserDTO setActive(boolean active) {
+        isActive = active;
         return this;
     }
 }

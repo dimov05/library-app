@@ -26,7 +26,6 @@ public class AuthorController {
     @GetMapping("")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_USER','ROLE_MODERATOR')")
     public ResponseEntity<Set<AuthorExtendedDTO>> getAllAuthors() {
-        Set<AuthorExtendedDTO> authors = authorService.getAllAuthors();
-        return new ResponseEntity<>(authors, HttpStatus.OK);
+        return new ResponseEntity<>(authorService.getAllAuthors(), HttpStatus.OK);
     }
 }

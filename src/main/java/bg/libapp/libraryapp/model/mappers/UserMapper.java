@@ -16,6 +16,7 @@ public class UserMapper {
                 .setDisplayName(registerUserRequest.getDisplayName())
                 .setPassword(registerUserRequest.getPassword()) // encoding in service
                 .setDateOfBirth(registerUserRequest.getDateOfBirth())
+                .setActive(true)
                 .setRole(Role.USER.ordinal());
     }
 
@@ -39,6 +40,7 @@ public class UserMapper {
                 .setLastName(user.getLastName())
                 .setDisplayName(user.getDisplayName())
                 .setDateOfBirth(user.getDateOfBirth())
-                .setRole(Role.values()[user.getRole()].name());
+                .setRole(Role.values()[user.getRole()].name())
+                .setActive(user.isActive());
     }
 }

@@ -29,7 +29,7 @@ public class UserController {
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_MODERATOR') or authentication.name == @userService.getUsernameById(#id)")
     public ResponseEntity<UserDTO> getUserById(@PathVariable("id") Long id) {
-        UserDTO userDTO = userService.findViewDTOById(id);
+        UserDTO userDTO = userService.findUserById(id);
         String principal = SecurityContextHolder.getContext().getAuthentication().getName();
         System.out.println(principal);
         if (userDTO != null) {
@@ -42,41 +42,43 @@ public class UserController {
     @GetMapping("")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_MODERATOR')")
     public ResponseEntity<List<UserDTO>> getAllUsers() {
-        List<UserDTO> users = userService.findAllUsersViewDTO();
-        return new ResponseEntity<>(users, HttpStatus.OK);
+        return new ResponseEntity<>(userService.findAllUsers(), HttpStatus.OK);
     }
 
 
     @PutMapping("/edit/{id}")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_MODERATOR') or @userService.getUsernameById(#id) == authentication.name")
     public ResponseEntity<UserDTO> editUser(@Valid @RequestBody UpdateUserRequest updateUserRequest, @PathVariable("id") long id) {
-        userService.editUserAndSave(updateUserRequest, id);
-        UserDTO editedUser = userService.findViewDTOById(id);
-        return new ResponseEntity<>(editedUser, HttpStatus.OK);
+        return new ResponseEntity<>(userService.editUserAndSave(updateUserRequest, id), HttpStatus.OK);
     }
 
     @PutMapping("/change-role/{id}")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<UserDTO> changeRole(@Valid @RequestBody ChangeRoleRequest changeRoleRequest, @PathVariable("id") long id) {
-        userService.changeRoleAndSave(changeRoleRequest, id);
-        UserDTO editedUser = userService.findViewDTOById(id);
-        return new ResponseEntity<>(editedUser, HttpStatus.OK);
+        return new ResponseEntity<>(userService.changeRoleAndSave(changeRoleRequest, id), HttpStatus.OK);
     }
 
     @PutMapping("/change-password/{id}")
     @PreAuthorize("hasAuthority('ROLE_ADMIN') or @userService.getUsernameById(#id) == authentication.name")
     public ResponseEntity<UserDTO> changePassword(@Valid @RequestBody ChangePasswordRequest changePasswordRequest, @PathVariable("id") long id) {
-        userService.changePasswordAndSave(changePasswordRequest, id);
-        UserDTO editedUser = userService.findViewDTOById(id);
-        return new ResponseEntity<>(editedUser, HttpStatus.OK);
+        return new ResponseEntity<>(userService.changePasswordAndSave(changePasswordRequest, id), HttpStatus.OK);
     }
 
     @DeleteMapping("/delete/{id}")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_MODERATOR')")
     public ResponseEntity<UserDTO> deleteUserById(@PathVariable("id") long id) {
-        UserDTO deletedUser = userService.findViewDTOById(id);
-        userService.deleteUserById(id);
-        deletedUser.setUsername(deletedUser.getUsername() + "-deleted!");
-        return new ResponseEntity<>(deletedUser, HttpStatus.OK);
+        return new ResponseEntity<>(userService.deleteUserById(id), HttpStatus.OK);
+    }
+
+    @PutMapping("/deactivate/{id}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN') or @userService.getUsernameById(#id) == authentication.name")
+    public ResponseEntity<UserDTO> deactivateUser(@PathVariable("id") long id) {
+        return new ResponseEntity<>(userService.deactivateUser(id), HttpStatus.OK);
+    }
+
+    @PutMapping("/activate/{id}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN') or @userService.getUsernameById(#id) == authentication.name")
+    public ResponseEntity<UserDTO> activateUser(@PathVariable("id") long id) {
+        return new ResponseEntity<>(userService.activateUser(id), HttpStatus.OK);
     }
 }
