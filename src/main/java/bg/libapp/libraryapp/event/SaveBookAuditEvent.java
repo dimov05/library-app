@@ -5,10 +5,8 @@ import bg.libapp.libraryapp.model.entity.Book;
 public class SaveBookAuditEvent extends BaseBookAuditEvent {
     private String newValue;
 
-    public SaveBookAuditEvent(Book book, String operationType, String newValue) {
+    public SaveBookAuditEvent(Book book) {
         super(book);
-        super.setOperationType(operationType);
-        this.newValue = newValue;
     }
 
     public SaveBookAuditEvent(Book book, String newValue) {

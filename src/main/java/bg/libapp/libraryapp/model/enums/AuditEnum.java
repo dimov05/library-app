@@ -1,5 +1,5 @@
 package bg.libapp.libraryapp.model.enums;
 
-public enum Audit {
+public enum AuditEnum {
     ADD, DELETE, UPDATE
 }

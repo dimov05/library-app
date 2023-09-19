@@ -12,7 +12,7 @@ public class BookAuditMapper {
     public static BookAudit mapToBookAudit(UpdateYearBookAuditEvent event) {
         return new BookAudit()
                 .setEventDate(LocalDateTime.now())
-                .setOperationType(event.getOperationType())
+                .setOperationType(event.getOperationType().name())
                 .setFieldName(event.getFieldName())
                 .setOldValue(event.getOldValue())
                 .setNewValue(event.getNewValue())
@@ -23,17 +23,18 @@ public class BookAuditMapper {
     public static BookAudit mapToBookAudit(UpdatePublisherBookAuditEvent event) {
         return new BookAudit()
                 .setEventDate(LocalDateTime.now())
-                .setOperationType(event.getOperationType())
+                .setOperationType(event.getOperationType().name())
                 .setFieldName(event.getFieldName())
                 .setOldValue(event.getOldValue())
                 .setNewValue(event.getNewValue())
                 .setUser(event.getUser())
                 .setBook(event.getBook());
     }
+
     public static BookAudit mapToBookAudit(SaveBookAuditEvent event) {
         return new BookAudit()
                 .setEventDate(LocalDateTime.now())
-                .setOperationType(event.getOperationType())
+                .setOperationType(event.getOperationType().name())
                 .setNewValue(event.getNewValue())
                 .setUser(event.getUser())
                 .setBook(event.getBook());
