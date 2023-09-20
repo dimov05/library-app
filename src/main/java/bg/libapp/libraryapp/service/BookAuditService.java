@@ -16,8 +16,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import static bg.libapp.libraryapp.model.constants.ApplicationConstants.PUBLISHER_BOOK_FIELD;
-import static bg.libapp.libraryapp.model.constants.ApplicationConstants.YEAR_BOOK_FIELD;
+import static bg.libapp.libraryapp.model.constants.ApplicationConstants.PUBLISHER;
+import static bg.libapp.libraryapp.model.constants.ApplicationConstants.YEAR;
 
 @Service
 @Transactional
@@ -38,7 +38,7 @@ public class BookAuditService {
         event.setUser(getUserForAudit());
         event.setNewValue(String.valueOf(event.getBook().getYear()));
         event.setOperationType(AuditEnum.UPDATE);
-        event.setFieldName(YEAR_BOOK_FIELD);
+        event.setFieldName(YEAR);
         logger.info("Creating an event for updating year of book with params: " + event);
         bookAuditRepository.saveAndFlush(BookAuditMapper.mapToBookAudit(event));
     }
@@ -48,7 +48,7 @@ public class BookAuditService {
         event.setUser(getUserForAudit());
         event.setNewValue(String.valueOf(event.getBook().getPublisher()));
         event.setOperationType(AuditEnum.UPDATE);
-        event.setFieldName(PUBLISHER_BOOK_FIELD);
+        event.setFieldName(PUBLISHER);
         logger.info("Creating an event for updating publisher of book with params: " + event);
         bookAuditRepository.saveAndFlush(BookAuditMapper.mapToBookAudit(event));
     }

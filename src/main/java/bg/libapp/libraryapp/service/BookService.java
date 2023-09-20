@@ -12,6 +12,7 @@ import bg.libapp.libraryapp.model.mappers.BookMapper;
 import bg.libapp.libraryapp.repository.AuthorRepository;
 import bg.libapp.libraryapp.repository.BookRepository;
 import bg.libapp.libraryapp.repository.GenreRepository;
+import bg.libapp.libraryapp.specifications.BookSpecifications;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -20,10 +21,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static bg.libapp.libraryapp.model.constants.ApplicationConstants.*;
 
 @Service
 @Transactional
@@ -131,14 +136,6 @@ public class BookService {
         return BookMapper.mapToBookExtendedDTO(book);
     }
 
-    public Set<BookExtendedDTO> getAllBooks() {
-        logger.info("getAllBooks method is accessed");
-        return bookRepository.findAll()
-                .stream()
-                .map(BookMapper::mapToBookExtendedDTO)
-                .collect(Collectors.toSet());
-    }
-
     public Set<BookExtendedDTO> getAllBooksByAuthorFirstAndLastName(String firstName, String lastName) {
         Author author = authorRepository.findAuthorByFirstNameAndLastName(firstName, lastName)
                 .orElseThrow(() -> {
@@ -178,5 +175,49 @@ public class BookService {
 
     private static String getBookNotFoundMessage(String isbn) {
         return "Book with this isbn '" + isbn + "' was not found!";
+    }
+
+    public Set<BookExtendedDTO> getBooksFiltered(BookFilterRequest bookFilterRequest) {
+        logger.info("GetBooksFiltered method called with params: " + bookFilterRequest);
+        Specification<Book> specification = getBookSpecifications(bookFilterRequest);
+        List<Book> books = specification == null
+                ? bookRepository.findAll()
+                : bookRepository.findAll(specification);
+        return books
+                .stream()
+                .map(BookMapper::mapToBookExtendedDTO)
+                .collect(Collectors.toSet());
+    }
+
+    private static Specification<Book> getBookSpecifications(BookFilterRequest bookFilterRequest) {
+        Specification<Book> specification = null;
+        if (bookFilterRequest.getTitle() != null) {
+            specification = BookSpecifications.fieldLike(TITLE, bookFilterRequest.getTitle()).and(Specification.where(specification));
+        }
+        if (bookFilterRequest.getPublisher() != null) {
+            specification = BookSpecifications.fieldLike(PUBLISHER, bookFilterRequest.getPublisher()).and(Specification.where(specification));
+        }
+        if (bookFilterRequest.getYearFrom() != null) {
+            specification = BookSpecifications.fieldGreaterThanOrEqual(YEAR, bookFilterRequest.getYearFrom()).and(Specification.where(specification));
+        }
+        if (bookFilterRequest.getYearTo() != null) {
+            specification = BookSpecifications.fieldLowerThanOrEqual(YEAR, bookFilterRequest.getYearTo()).and(Specification.where(specification));
+        }
+        if (bookFilterRequest.getGenres() != null) {
+            for (Integer genre : bookFilterRequest.getGenres()) {
+                specification = BookSpecifications.genreEquals(genre).and(Specification.where(specification));
+            }
+        }
+        if (bookFilterRequest.getAuthorsFirstName() != null) {
+            for (String authorFirstName : bookFilterRequest.getAuthorsFirstName()) {
+                specification = BookSpecifications.authorNameEquals(FIRST_NAME, authorFirstName).and(Specification.where(specification));
+            }
+        }
+        if (bookFilterRequest.getAuthorsLastName() != null) {
+            for (String authorLastName : bookFilterRequest.getAuthorsLastName()) {
+                specification = BookSpecifications.authorNameEquals(LAST_NAME, authorLastName).and(Specification.where(specification));
+            }
+        }
+        return specification;
     }
 }

@@ -35,8 +35,9 @@ public class BookController {
 
     @GetMapping("")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_USER','ROLE_MODERATOR')")
-    public ResponseEntity<Set<BookExtendedDTO>> getAllBooks() {
-        return new ResponseEntity<>(bookService.getAllBooks(), HttpStatus.OK);
+    public ResponseEntity<Set<BookExtendedDTO>> getBooksFiltered(@Valid BookFilterRequest bookFilterRequest) {
+
+        return new ResponseEntity<>(bookService.getBooksFiltered(bookFilterRequest), HttpStatus.OK);
     }
 
     @GetMapping("/author/{firstName},{lastName}")
