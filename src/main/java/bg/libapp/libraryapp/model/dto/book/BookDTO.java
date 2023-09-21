@@ -1,6 +1,7 @@
 package bg.libapp.libraryapp.model.dto.book;
 
 import bg.libapp.libraryapp.model.dto.genre.GenreDTO;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Set;
 
@@ -8,16 +9,21 @@ public class BookDTO {
     private String isbn;
     private String title;
     private int year;
+//    @JsonProperty(namespace = "isActive")
+    private boolean isActive;
+    private String deactivateReason;
     private String publisher;
     private Set<GenreDTO> genres;
 
     public BookDTO() {
     }
 
-    public BookDTO(String isbn, String title, int year, String publisher, Set<GenreDTO> genres) {
+    public BookDTO(String isbn, String title, int year, boolean isActive, String deactivateReason, String publisher, Set<GenreDTO> genres) {
         this.isbn = isbn;
         this.title = title;
         this.year = year;
+        this.isActive = isActive;
+        this.deactivateReason = deactivateReason;
         this.publisher = publisher;
         this.genres = genres;
     }
@@ -67,12 +73,32 @@ public class BookDTO {
         return this;
     }
 
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public BookDTO setActive(boolean active) {
+        isActive = active;
+        return this;
+    }
+
+    public String isDeactivateReason() {
+        return deactivateReason;
+    }
+
+    public BookDTO setDeactivateReason(String deactivateReason) {
+        this.deactivateReason = deactivateReason;
+        return this;
+    }
+
     @Override
     public String toString() {
         return "{" +
                 "isbn='" + isbn + '\'' +
                 ", title='" + title + '\'' +
                 ", year=" + year +
+                ", isActive=" + isActive +
+                ", deactivateReason=" + deactivateReason +
                 ", publisher='" + publisher + '\'' +
                 ", genres=" + genres +
                 '}';

@@ -2,13 +2,13 @@ package bg.libapp.libraryapp.event;
 
 import bg.libapp.libraryapp.model.entity.Book;
 
-public class UpdateYearBookAuditEvent extends BaseBookAuditEvent {
+public class UpdateActiveStatusBookAuditEvent extends BaseBookAuditEvent {
     private String fieldName;
     private String oldValue;
 
     private String newValue;
 
-    public UpdateYearBookAuditEvent(Book book, String oldValue) {
+    public UpdateActiveStatusBookAuditEvent(Book book, String oldValue) {
         super(book);
         this.oldValue = oldValue;
     }
