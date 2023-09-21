@@ -54,17 +54,26 @@ public class BookController {
     }
 
     @DeleteMapping("/delete/{isbn}")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_MODERATOR')")
     public ResponseEntity<BookDTO> deleteBookById(@PathVariable("isbn") String isbn) {
         return new ResponseEntity<>(bookService.deleteByIsbn(isbn), HttpStatus.OK);
     }
 
     @PutMapping("/year/{isbn}")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_MODERATOR')")
     public ResponseEntity<BookDTO> updateYear(@PathVariable("isbn") String isbn, @Valid @RequestBody BookUpdateYearRequest bookUpdateYearRequest) {
         return new ResponseEntity<>(bookService.updateYear(isbn, bookUpdateYearRequest), HttpStatus.OK);
     }
 
     @PutMapping("/publisher/{isbn}")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_MODERATOR')")
     public ResponseEntity<BookDTO> updatePublisher(@PathVariable("isbn") String isbn, @Valid @RequestBody BookUpdatePublisherRequest bookUpdatePublisherRequest) {
         return new ResponseEntity<>(bookService.updatePublisher(isbn, bookUpdatePublisherRequest), HttpStatus.OK);
+    }
+
+    @PutMapping("/change-status/{isbn}")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_MODERATOR')")
+    public ResponseEntity<BookDTO> changeBookStatus(@PathVariable("isbn") String isbn,@Valid BookChangeStatusRequest bookChangeStatusRequest) {
+        return new ResponseEntity<>(bookService.changeStatus(isbn, bookChangeStatusRequest), HttpStatus.OK);
     }
 }
