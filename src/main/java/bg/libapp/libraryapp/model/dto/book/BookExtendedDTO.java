@@ -12,8 +12,8 @@ public class BookExtendedDTO extends BookDTO {
     public BookExtendedDTO() {
     }
 
-    public BookExtendedDTO(String isbn, String title, int year, boolean isActive, String deactivateReason, String publisher, Set<GenreDTO> genres, String dateAdded, Set<AuthorDTO> authors) {
-        super(isbn, title, year, isActive, deactivateReason, publisher, genres);
+    public BookExtendedDTO(String isbn, String title, int year, boolean isActive, int availableQuantity, int totalQuantity, String deactivateReason, String publisher, Set<GenreDTO> genres, String dateAdded, Set<AuthorDTO> authors) {
+        super(isbn, title, year, isActive, availableQuantity, totalQuantity, deactivateReason, publisher, genres);
         this.dateAdded = dateAdded;
         this.authors = authors;
     }
@@ -30,11 +30,6 @@ public class BookExtendedDTO extends BookDTO {
 
     public Set<AuthorDTO> getAuthors() {
         return authors;
-    }
-
-    public BookExtendedDTO setAuthors(Set<AuthorDTO> authors) {
-        this.authors = authors;
-        return this;
     }
 
     @Override
@@ -68,6 +63,23 @@ public class BookExtendedDTO extends BookDTO {
     @Override
     public BookExtendedDTO setGenres(Set<GenreDTO> genres) {
         super.setGenres(genres);
+        return this;
+    }
+
+    public BookExtendedDTO setAuthors(Set<AuthorDTO> authors) {
+        this.authors = authors;
+        return this;
+    }
+
+    @Override
+    public BookExtendedDTO setAvailableQuantity(int availableQuantity) {
+        super.setAvailableQuantity(availableQuantity);
+        return this;
+    }
+
+    @Override
+    public BookExtendedDTO setTotalQuantity(int totalQuantity) {
+        super.setTotalQuantity(totalQuantity);
         return this;
     }
 

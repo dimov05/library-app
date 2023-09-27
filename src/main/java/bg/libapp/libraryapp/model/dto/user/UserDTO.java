@@ -18,6 +18,7 @@ public class UserDTO {
 
     private boolean isActive;
 
+
     public UserDTO() {
     }
 

@@ -25,6 +25,8 @@ public class BookAddRequest {
     @NotBlank(message = "Publisher should not be blank")
     @Length(min = 1, max = 100, message = "Publisher name should be between 1 and 100 symbols")
     private String publisher;
+    @Min(value = 0, message = "Book's total quantity should be equal or more than 0")
+    private int totalQuantity;
     @NotEmpty
     private Set<@Valid GenreRequest> genres;
     @NotEmpty
@@ -33,10 +35,11 @@ public class BookAddRequest {
     public BookAddRequest() {
     }
 
-    public BookAddRequest(String isbn, String title, int year, String publisher, Set<@Valid GenreRequest> genres, Set<@Valid AuthorRequest> authors) {
+    public BookAddRequest(String isbn, String title, int year, int totalQuantity, String publisher, Set<@Valid GenreRequest> genres, Set<@Valid AuthorRequest> authors) {
         this.isbn = isbn;
         this.title = title;
         this.year = year;
+        this.totalQuantity = totalQuantity;
         this.publisher = publisher;
         this.genres = genres;
         this.authors = authors;
@@ -96,6 +99,15 @@ public class BookAddRequest {
         return this;
     }
 
+    public int getTotalQuantity() {
+        return totalQuantity;
+    }
+
+    public BookAddRequest setTotalQuantity(int totalQuantity) {
+        this.totalQuantity = totalQuantity;
+        return this;
+    }
+
     @Override
     public String toString() {
         return "{" +
@@ -103,6 +115,7 @@ public class BookAddRequest {
                 ", title='" + title + '\'' +
                 ", year=" + year +
                 ", publisher='" + publisher + '\'' +
+                ", totalQuantity=" + totalQuantity +
                 ", genres=" + genres +
                 ", authors=" + authors +
                 '}';

@@ -1,4 +1,4 @@
-package bg.libapp.libraryapp.exceptions;
+package bg.libapp.libraryapp.exceptions.book;
 
 public class BookNotActiveException extends RuntimeException {
     public BookNotActiveException(String isbn) {

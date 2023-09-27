@@ -1,5 +1,6 @@
 package bg.libapp.libraryapp.model.dto.book;
 
+import jakarta.validation.constraints.Pattern;
 import org.hibernate.validator.constraints.Length;
 
 import java.util.Arrays;
@@ -17,24 +18,32 @@ public class BookFilterRequest {
     //    @Min(value = 1000, message = "Year should be between 1000 and now")
 //    @Max(value = 2100, message = "Year should be between 1000 and now")
     private Integer yearTo;
+    @Pattern(regexp = "^([<>]=?|!=|=):(\\d{1,9})(,[<>]=?|!=|=):(\\d{1,9})*$")
+    private String year;
     private Boolean isActive;
     private Integer[] genres;
     private String[] authorsFirstName;
     private String[] authorsLastName;
+    @Pattern(regexp = "^([<>]=?|!=|=):(\\d{1,9})(,[<>]=?|!=|=):(\\d{1,9})*$")
+    private String availableQuantity;
+    @Pattern(regexp = "^([<>]=?|!=|=):(\\d{1,9})(,[<>]=?|!=|=):(\\d{1,9})*$")
+    private String totalQuantity;
 
     public BookFilterRequest() {
 
     }
 
-    public BookFilterRequest(String title, String publisher, Integer yearFrom, Integer yearTo, Boolean isActive, Integer[] genres, String[] authorsFirstName, String[] authorsLastName) {
+    public BookFilterRequest(String title, String publisher, Integer yearFrom, Integer yearTo, Boolean isActive, Integer[] genres, String[] authorsFirstName, String[] authorsLastName, String availableQuantity, String totalQuantity) {
         this.title = title;
         this.publisher = publisher;
         this.yearFrom = yearFrom;
         this.yearTo = yearTo;
-        this.isActive = Boolean.parseBoolean(String.valueOf(isActive).toLowerCase());
+        this.isActive = isActive;
         this.genres = genres;
         this.authorsFirstName = authorsFirstName;
         this.authorsLastName = authorsLastName;
+        this.availableQuantity = availableQuantity;
+        this.totalQuantity = totalQuantity;
     }
 
     public String getTitle() {
@@ -101,6 +110,52 @@ public class BookFilterRequest {
         this.isActive = Boolean.parseBoolean(String.valueOf(isActive).toLowerCase());
     }
 
+    public BookFilterRequest setYearFrom(Integer yearFrom) {
+        this.yearFrom = yearFrom;
+        return this;
+    }
+
+    public BookFilterRequest setYearTo(Integer yearTo) {
+        this.yearTo = yearTo;
+        return this;
+    }
+
+    public Boolean getActive() {
+        return isActive;
+    }
+
+    public BookFilterRequest setActive(Boolean active) {
+        isActive = active;
+        return this;
+    }
+
+    public String getAvailableQuantity() {
+        return availableQuantity;
+    }
+
+    public BookFilterRequest setAvailableQuantity(String availableQuantity) {
+        this.availableQuantity = availableQuantity;
+        return this;
+    }
+
+    public String getTotalQuantity() {
+        return totalQuantity;
+    }
+
+    public BookFilterRequest setTotalQuantity(String totalQuantity) {
+        this.totalQuantity = totalQuantity;
+        return this;
+    }
+
+    public String getYear() {
+        return year;
+    }
+
+    public BookFilterRequest setYear(String year) {
+        this.year = year;
+        return this;
+    }
+
     @Override
     public String toString() {
         return "{" +
@@ -112,6 +167,8 @@ public class BookFilterRequest {
                 ", genres=" + Arrays.toString(genres) +
                 ", authorsFirstName=" + Arrays.toString(authorsFirstName) +
                 ", authorsLastName=" + Arrays.toString(authorsLastName) +
+                ", availableQuantity='" + availableQuantity + '\'' +
+                ", totalQuantity='" + totalQuantity + '\'' +
                 '}';
     }
 }

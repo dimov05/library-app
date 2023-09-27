@@ -1,9 +1,10 @@
 package bg.libapp.libraryapp.model.entity;
 
-import bg.libapp.libraryapp.model.enums.Role;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Table
 @Entity(name = "user")
@@ -26,20 +27,24 @@ public class User {
     private LocalDate dateOfBirth;
     @Column(name = "role", nullable = false)
     private int role;
-    @Column(name = "is_active",nullable = false)
+    @Column(name = "is_active", nullable = false)
     private boolean isActive;
+    @OneToMany(mappedBy = "user")
+    private List<Rent> rents;
 
     public User() {
     }
 
-    public User(String username, String firstName, String lastName, String displayName, String password, LocalDate dateOfBirth, String role) {
+    public User(String username, String firstName, String lastName, String displayName, String password, LocalDate dateOfBirth, int role, boolean isActive, List<Rent> rents) {
         this.username = username;
         this.firstName = firstName;
         this.lastName = lastName;
         this.displayName = displayName;
         this.password = password;
         this.dateOfBirth = dateOfBirth;
-        this.role = Role.valueOf(role).ordinal();
+        this.role = role;
+        this.isActive = isActive;
+        this.rents = rents;
     }
 
     public User(long id, String username, String firstName, String lastName, String displayName, String password, LocalDate dateOfBirth, int role, boolean isActive) {
@@ -133,5 +138,19 @@ public class User {
     public User setActive(boolean active) {
         isActive = active;
         return this;
+    }
+
+    public List<Rent> getRents() {
+        return rents;
+    }
+
+    public User setRents(List<Rent> rents) {
+        this.rents = rents;
+        return this;
+    }
+
+    public void addRent(Rent rent) {
+        if (this.rents == null) this.rents = new ArrayList<>();
+        this.rents.add(rent);
     }
 }

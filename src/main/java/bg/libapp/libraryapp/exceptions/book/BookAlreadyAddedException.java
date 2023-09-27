@@ -1,4 +1,4 @@
-package bg.libapp.libraryapp.exceptions;
+package bg.libapp.libraryapp.exceptions.book;
 
 public class BookAlreadyAddedException extends RuntimeException{
     public BookAlreadyAddedException(String isbn) {

@@ -39,4 +39,15 @@ public class BookSpecifications {
     public static Specification<Book> isActive(Boolean status) {
         return ((root, query, builder) -> builder.equal(root.get(IS_ACTIVE), status));
     }
+
+    public static Specification<Book> fieldCompareValue(String fieldName, int value, String operation) {
+        return switch (operation) {
+            case ">" -> ((root, query, builder) -> builder.greaterThan(root.get(fieldName), value));
+            case ">=" -> ((root, query, builder) -> builder.greaterThanOrEqualTo(root.get(fieldName), value));
+            case "<" -> ((root, query, builder) -> builder.lessThan(root.get(fieldName), value));
+            case "<=" -> ((root, query, builder) -> builder.lessThanOrEqualTo(root.get(fieldName), value));
+            case "!=" -> ((root, query, builder) -> builder.notEqual(root.get(fieldName), value));
+            default -> ((root, query, builder) -> builder.equal(root.get(fieldName), value));
+        };
+    }
 }
