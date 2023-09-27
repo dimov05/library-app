@@ -2,13 +2,14 @@ Create database library_app;
 drop database library_app;
 use library_app;
 
-create table book
-(
-    isbn       VARCHAR(17) PRIMARY KEY,
-    title      VARCHAR(150)                        NOT NULL,
-    year       INT                                 NOT NULL,
-    publisher  VARCHAR(100)                        NOT NULL,
-    date_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP not null
+CREATE TABLE book (
+                      isbn VARCHAR(17) PRIMARY KEY,
+                      title VARCHAR(150) NOT NULL,
+                      year INT NOT NULL,
+                      is_active BOOLEAN NOT NULL DEFAULT 1,
+                      deactivate_reason VARCHAR(40),
+                      publisher VARCHAR(100) NOT NULL,
+                      date_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
 create table author
@@ -29,6 +30,7 @@ create table user
     first_name    VARCHAR(50)  NOT NULL,
     last_name     VARCHAR(50)  NOT NULL,
     display_name  VARCHAR(50)  NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT 1,
     `password`    VARCHAR(255) NOT NULL,
     date_of_birth DATE         NOT NULL,
     `role`        INT          NOT NULL
@@ -75,3 +77,22 @@ CREATE TABLE book_audit
     CONSTRAINT fk_book_audit_book FOREIGN KEY (book_isbn)
         REFERENCES book (isbn)
 );
+
+INSERT INTO `library_app`.`genre` (`name`)
+VALUES ('Action'),
+       ('Classics'),
+       ('Comic'),
+       ('Mystery'),
+       ('Cookbook'),
+       ('True crime'),
+       ( 'History'),
+       ('Memoir'),
+       ('Horror'),
+       ('Fiction'),
+       ('Poetry'),
+       ('Self-Help'),
+       ('Biographies'),
+       ('Thriller'),
+       ('Romance'),
+       ('Fantasy'),
+       ('Biographies');

@@ -35,4 +35,8 @@ public class BookSpecifications {
             return builder.equal(bookAuthors.get(authorFieldName), authorName);
         };
     }
+
+    public static Specification<Book> isActive(Boolean status) {
+        return ((root, query, builder) -> builder.equal(root.get(IS_ACTIVE), status));
+    }
 }

@@ -1,13 +1,15 @@
 package bg.libapp.libraryapp.service;
 
 import bg.libapp.libraryapp.event.SaveBookAuditEvent;
-import bg.libapp.libraryapp.event.UpdatePublisherBookAuditEvent;
+import bg.libapp.libraryapp.event.UpdateActiveStatusBookAuditEvent;
+import bg.libapp.libraryapp.event.UpdateDeactivateReasonBookAuditEvent;
 import bg.libapp.libraryapp.event.UpdateYearBookAuditEvent;
 import bg.libapp.libraryapp.exceptions.*;
 import bg.libapp.libraryapp.model.dto.book.*;
 import bg.libapp.libraryapp.model.entity.Author;
 import bg.libapp.libraryapp.model.entity.Book;
 import bg.libapp.libraryapp.model.entity.Genre;
+import bg.libapp.libraryapp.model.enums.DeactivateReason;
 import bg.libapp.libraryapp.model.mappers.BookMapper;
 import bg.libapp.libraryapp.repository.AuthorRepository;
 import bg.libapp.libraryapp.repository.BookRepository;
@@ -24,7 +26,9 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -61,6 +65,7 @@ public class BookService {
             throw new BookAlreadyAddedException(isbnOfBook);
         }
         Book book = BookMapper.mapToBook(bookAddRequest);
+        book.setActive(true);
         book.setGenres(bookAddRequest.getGenres()
                 .stream()
                 .map(genre -> this.genreRepository.findByName(genre.getName())
@@ -80,11 +85,7 @@ public class BookService {
     }
 
     public BookDTO deleteByIsbn(String isbn) {
-        Book bookToDelete = bookRepository.findByIsbn(isbn)
-                .orElseThrow(() -> {
-                    logger.error(getBookNotFoundMessage(isbn));
-                    return new BookNotFoundException(isbn);
-                });
+        Book bookToDelete = getBookByIsbnOrThrowException(isbn);
         BookDTO bookToReturn = BookMapper.mapToBookDTO(bookToDelete);
         bookRepository.delete(bookToDelete);
         logger.info("Delete book with isbn '" + isbn + "'");
@@ -93,11 +94,8 @@ public class BookService {
     }
 
     public BookDTO updateYear(String isbn, BookUpdateYearRequest bookUpdateYearRequest) {
-        Book bookToEdit = bookRepository.findByIsbn(isbn)
-                .orElseThrow(() -> {
-                    logger.error(getBookNotFoundMessage(isbn));
-                    return new BookNotFoundException(isbn);
-                });
+        Book bookToEdit = getBookByIsbnOrThrowException(isbn);
+        isBookActive(bookToEdit);
         String oldValueYear = String.valueOf(bookToEdit.getYear());
         String newValueYear = String.valueOf(bookUpdateYearRequest.getYear());
         if (!oldValueYear.equals(newValueYear)) {
@@ -109,29 +107,28 @@ public class BookService {
         return BookMapper.mapToBookDTO(bookToEdit);
     }
 
+    private void isBookActive(Book bookToEdit) {
+        if (!bookToEdit.isActive()) {
+            throw new BookNotActiveException(bookToEdit.getIsbn());
+        }
+    }
+
     public BookDTO updatePublisher(String isbn, BookUpdatePublisherRequest bookUpdatePublisherRequest) {
-        Book bookToEdit = bookRepository.findByIsbn(isbn)
-                .orElseThrow(() -> {
-                    logger.error(getBookNotFoundMessage(isbn));
-                    return new BookNotFoundException(isbn);
-                });
+        Book bookToEdit = getBookByIsbnOrThrowException(isbn);
+        isBookActive(bookToEdit);
         String oldValuePublisher = bookToEdit.getPublisher();
         String newValuePublisher = bookUpdatePublisherRequest.getPublisher();
         if (!oldValuePublisher.equals(newValuePublisher)) {
             bookToEdit.setPublisher(bookUpdatePublisherRequest.getPublisher());
             bookRepository.saveAndFlush(bookToEdit);
-            eventPublisher.publishEvent(new UpdatePublisherBookAuditEvent(bookToEdit, oldValuePublisher));
+            eventPublisher.publishEvent(new UpdateYearBookAuditEvent(bookToEdit, oldValuePublisher));
             logger.info("Updated publisher of book with isbn '" + isbn + "' and params: " + bookUpdatePublisherRequest);
         }
         return BookMapper.mapToBookDTO(bookToEdit);
     }
 
     public BookExtendedDTO findBookByIsbn(String isbn) {
-        Book book = bookRepository.findByIsbn(isbn)
-                .orElseThrow(() -> {
-                    logger.error(getBookNotFoundMessage(isbn));
-                    return new BookNotFoundException(isbn);
-                });
+        Book book = getBookByIsbnOrThrowException(isbn);
         logger.info("Find book with isbn '" + isbn + "'");
         return BookMapper.mapToBookExtendedDTO(book);
     }
@@ -191,6 +188,9 @@ public class BookService {
 
     private static Specification<Book> getBookSpecifications(BookFilterRequest bookFilterRequest) {
         Specification<Book> specification = null;
+        if (bookFilterRequest.getIsActive() != null) {
+            specification = BookSpecifications.isActive(bookFilterRequest.getIsActive()).and(Specification.where(specification));
+        }
         if (bookFilterRequest.getTitle() != null) {
             specification = BookSpecifications.fieldLike(TITLE, bookFilterRequest.getTitle()).and(Specification.where(specification));
         }
@@ -219,5 +219,59 @@ public class BookService {
             }
         }
         return specification;
+    }
+
+    @Transactional
+    public BookDTO changeStatus(String isbn, BookChangeStatusRequest bookChangeStatusRequest) {
+        logger.info("changeStatus of Book method called with params: " + bookChangeStatusRequest);
+
+        Book book = getBookByIsbnOrThrowException(isbn);
+        boolean newStatus = bookChangeStatusRequest.isActive();
+        boolean oldStatus = book.isActive();
+        String newReason = bookChangeStatusRequest.getDeactivateReason();
+        String oldReason = book.getDeactivateReason();
+        String oldStatusString = String.valueOf(oldStatus);
+
+
+        if (newStatus && !oldStatus) {
+            setBookStatusAndReason(book, null, true);
+            eventPublisher.publishEvent(new UpdateActiveStatusBookAuditEvent(book, oldStatusString));
+            eventPublisher.publishEvent(new UpdateDeactivateReasonBookAuditEvent(book, oldReason));
+            logger.info("Activated book with isbn '" + book.getIsbn() + "' and params: " + book);
+        } else if (!newStatus) {
+            isValidDeactivateReason(newReason);
+            if (!oldStatus && !Objects.equals(oldReason, newReason)) {
+                book.setDeactivateReason(newReason);
+                eventPublisher.publishEvent(new UpdateDeactivateReasonBookAuditEvent(book, oldReason));
+            } else if (!Objects.equals(oldReason, newReason)) {
+                setBookStatusAndReason(book, newReason, false);
+                eventPublisher.publishEvent(new UpdateActiveStatusBookAuditEvent(book, oldStatusString));
+                eventPublisher.publishEvent(new UpdateDeactivateReasonBookAuditEvent(book, oldReason));
+            }
+            logger.info("Deactivated book with isbn '" + book.getIsbn() + "' and params: " + book);
+        }
+        return BookMapper.mapToBookDTO(book);
+    }
+
+    private static void setBookStatusAndReason(Book book, String newReason, boolean status) {
+        book.setActive(status);
+        book.setDeactivateReason(newReason);
+    }
+
+    private void isValidDeactivateReason(String deactivateReason) {
+        boolean isValid = Arrays.stream(DeactivateReason.values()).map(String::valueOf)
+                .collect(Collectors.toSet()).contains(deactivateReason);
+        if (!isValid) {
+            logger.error("There is no such a deactivate reason '" + deactivateReason + "'");
+            throw new NoSuchDeactivateReasonException(deactivateReason);
+        }
+    }
+
+    private Book getBookByIsbnOrThrowException(String isbn) {
+        return bookRepository.findByIsbn(isbn)
+                .orElseThrow(() -> {
+                    logger.error(getBookNotFoundMessage(isbn));
+                    return new BookNotFoundException(isbn);
+                });
     }
 }

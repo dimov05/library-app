@@ -3,28 +3,26 @@ package bg.libapp.libraryapp.model.dto.book;
 import bg.libapp.libraryapp.model.dto.author.AuthorDTO;
 import bg.libapp.libraryapp.model.dto.genre.GenreDTO;
 
-import java.time.LocalDateTime;
 import java.util.Set;
 
 public class BookExtendedDTO extends BookDTO {
-    private LocalDateTime dateAdded;
+    private String dateAdded;
     private Set<AuthorDTO> authors;
 
     public BookExtendedDTO() {
     }
 
-    public BookExtendedDTO(String isbn, String title, int year, String publisher, Set<GenreDTO> genres, LocalDateTime dateAdded, Set<AuthorDTO> authors) {
-        super(isbn, title, year, publisher, genres);
+    public BookExtendedDTO(String isbn, String title, int year, boolean isActive, String deactivateReason, String publisher, Set<GenreDTO> genres, String dateAdded, Set<AuthorDTO> authors) {
+        super(isbn, title, year, isActive, deactivateReason, publisher, genres);
         this.dateAdded = dateAdded;
         this.authors = authors;
     }
 
-
-    public LocalDateTime getDateAdded() {
+    public String getDateAdded() {
         return dateAdded;
     }
 
-    public BookExtendedDTO setDateAdded(LocalDateTime dateAdded) {
+    public BookExtendedDTO setDateAdded(String dateAdded) {
         this.dateAdded = dateAdded;
         return this;
     }
@@ -70,6 +68,18 @@ public class BookExtendedDTO extends BookDTO {
     @Override
     public BookExtendedDTO setGenres(Set<GenreDTO> genres) {
         super.setGenres(genres);
+        return this;
+    }
+
+    @Override
+    public BookExtendedDTO setActive(boolean active) {
+        super.setActive(active);
+        return this;
+    }
+
+    @Override
+    public BookExtendedDTO setDeactivateReason(String deactivateReason) {
+        super.setDeactivateReason(deactivateReason);
         return this;
     }
 
