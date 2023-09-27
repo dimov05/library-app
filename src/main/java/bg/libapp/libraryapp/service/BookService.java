@@ -28,6 +28,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -220,49 +221,50 @@ public class BookService {
         return specification;
     }
 
+    @Transactional
     public BookDTO changeStatus(String isbn, BookChangeStatusRequest bookChangeStatusRequest) {
         logger.info("changeStatus of Book method called with params: " + bookChangeStatusRequest);
 
         Book book = getBookByIsbnOrThrowException(isbn);
-        boolean statusToSet = bookChangeStatusRequest.isActive();
-        if (statusToSet) {
-            activateBook(book);
-        } else {
-            deactivateBook(book, bookChangeStatusRequest.getDeactivateReason());
+        boolean newStatus = bookChangeStatusRequest.isActive();
+        boolean oldStatus = book.isActive();
+        String newReason = bookChangeStatusRequest.getDeactivateReason();
+        String oldReason = book.getDeactivateReason();
+        String oldStatusString = String.valueOf(oldStatus);
+
+
+        if (newStatus && !oldStatus) {
+            setBookStatusAndReason(book, null, true);
+            eventPublisher.publishEvent(new UpdateActiveStatusBookAuditEvent(book, oldStatusString));
+            eventPublisher.publishEvent(new UpdateDeactivateReasonBookAuditEvent(book, oldReason));
+            logger.info("Activated book with isbn '" + book.getIsbn() + "' and params: " + book);
+        } else if (!newStatus) {
+            isValidDeactivateReason(newReason);
+            if (!oldStatus && !Objects.equals(oldReason, newReason)) {
+                book.setDeactivateReason(newReason);
+                eventPublisher.publishEvent(new UpdateDeactivateReasonBookAuditEvent(book, oldReason));
+            } else if (!Objects.equals(oldReason, newReason)) {
+                setBookStatusAndReason(book, newReason, false);
+                eventPublisher.publishEvent(new UpdateActiveStatusBookAuditEvent(book, oldStatusString));
+                eventPublisher.publishEvent(new UpdateDeactivateReasonBookAuditEvent(book, oldReason));
+            }
+            logger.info("Deactivated book with isbn '" + book.getIsbn() + "' and params: " + book);
         }
         return BookMapper.mapToBookDTO(book);
     }
 
-    private void deactivateBook(Book book, String deactivateReason) {
-        if (isValidDeactivateReason(deactivateReason)) {
-            String oldStatus = String.valueOf(book.isActive());
-            String oldReason = book.getDeactivateReason();
-            book.setActive(false);
-            book.setDeactivateReason(deactivateReason);
-            eventPublisher.publishEvent(new UpdateActiveStatusBookAuditEvent(book, oldStatus));
-            eventPublisher.publishEvent(new UpdateDeactivateReasonBookAuditEvent(book, oldReason));
-            logger.info("Deactivated book with isbn '" + book.getIsbn() + "' and params: " + book);
-        } else {
+    private static void setBookStatusAndReason(Book book, String newReason, boolean status) {
+        book.setActive(status);
+        book.setDeactivateReason(newReason);
+    }
+
+    private void isValidDeactivateReason(String deactivateReason) {
+        boolean isValid = Arrays.stream(DeactivateReason.values()).map(String::valueOf)
+                .collect(Collectors.toSet()).contains(deactivateReason);
+        if (!isValid) {
             logger.error("There is no such a deactivate reason '" + deactivateReason + "'");
             throw new NoSuchDeactivateReasonException(deactivateReason);
         }
-    }
-
-    private void activateBook(Book book) {
-        if (!book.isActive()) {
-            String oldStatus = String.valueOf(book.isActive());
-            String oldReason = book.getDeactivateReason();
-            book.setActive(true);
-            book.setDeactivateReason(null);
-            eventPublisher.publishEvent(new UpdateActiveStatusBookAuditEvent(book, oldStatus));
-            eventPublisher.publishEvent(new UpdateDeactivateReasonBookAuditEvent(book, oldReason));
-            logger.info("Activated book with isbn '" + book.getIsbn() + "' and params: " + book);
-        }
-    }
-
-    private static boolean isValidDeactivateReason(String deactivateReason) {
-        return Arrays.stream(DeactivateReason.values()).map(String::valueOf)
-                .collect(Collectors.toSet()).contains(deactivateReason);
     }
 
     private Book getBookByIsbnOrThrowException(String isbn) {
