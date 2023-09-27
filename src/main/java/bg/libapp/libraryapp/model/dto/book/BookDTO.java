@@ -8,16 +8,27 @@ public class BookDTO {
     private String isbn;
     private String title;
     private int year;
+//    @JsonProperty(namespace = "isActive")
+    private boolean isActive;
+
+    private int availableQuantity;
+
+    private int totalQuantity;
+    private String deactivateReason;
     private String publisher;
     private Set<GenreDTO> genres;
 
     public BookDTO() {
     }
 
-    public BookDTO(String isbn, String title, int year, String publisher, Set<GenreDTO> genres) {
+    public BookDTO(String isbn, String title, int year, boolean isActive, int availableQuantity, int totalQuantity, String deactivateReason, String publisher, Set<GenreDTO> genres) {
         this.isbn = isbn;
         this.title = title;
         this.year = year;
+        this.isActive = isActive;
+        this.availableQuantity = availableQuantity;
+        this.totalQuantity = totalQuantity;
+        this.deactivateReason = deactivateReason;
         this.publisher = publisher;
         this.genres = genres;
     }
@@ -58,6 +69,7 @@ public class BookDTO {
         return this;
     }
 
+
     public Set<GenreDTO> getGenres() {
         return genres;
     }
@@ -67,12 +79,56 @@ public class BookDTO {
         return this;
     }
 
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public BookDTO setActive(boolean active) {
+        isActive = active;
+        return this;
+    }
+
+    public String isDeactivateReason() {
+        return deactivateReason;
+    }
+
+    public BookDTO setDeactivateReason(String deactivateReason) {
+        this.deactivateReason = deactivateReason;
+        return this;
+    }
+
+    public int getAvailableQuantity() {
+        return availableQuantity;
+    }
+
+    public BookDTO setAvailableQuantity(int availableQuantity) {
+        this.availableQuantity = availableQuantity;
+        return this;
+    }
+
+    public int getTotalQuantity() {
+        return totalQuantity;
+    }
+
+    public BookDTO setTotalQuantity(int totalQuantity) {
+        this.totalQuantity = totalQuantity;
+        return this;
+    }
+
+    public String getDeactivateReason() {
+        return deactivateReason;
+    }
+
     @Override
     public String toString() {
         return "{" +
                 "isbn='" + isbn + '\'' +
                 ", title='" + title + '\'' +
                 ", year=" + year +
+                ", isActive=" + isActive +
+                ", availableQuantity=" + availableQuantity +
+                ", totalQuantity=" + totalQuantity +
+                ", deactivateReason='" + deactivateReason + '\'' +
                 ", publisher='" + publisher + '\'' +
                 ", genres=" + genres +
                 '}';

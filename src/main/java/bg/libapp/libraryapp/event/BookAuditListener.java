@@ -19,6 +19,10 @@ public class BookAuditListener {
         bookAuditService.updateYearOfBook(event);
 
     }
+    @EventListener
+    public void handleUpdateQuantityOfBook(UpdateQuantityBookAuditEvent event) {
+        bookAuditService.updateQuantityOfBook(event);
+    }
 
     @EventListener
     public void handleUpdatePublisherOfBook(UpdatePublisherBookAuditEvent event) {

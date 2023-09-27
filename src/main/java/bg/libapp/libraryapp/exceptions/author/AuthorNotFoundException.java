@@ -1,4 +1,4 @@
-package bg.libapp.libraryapp.exceptions;
+package bg.libapp.libraryapp.exceptions.author;
 
 public class AuthorNotFoundException extends RuntimeException{
     public AuthorNotFoundException(String firstName,String lastName) {

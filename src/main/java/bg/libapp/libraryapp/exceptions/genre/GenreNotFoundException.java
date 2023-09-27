@@ -1,4 +1,4 @@
-package bg.libapp.libraryapp.exceptions;
+package bg.libapp.libraryapp.exceptions.genre;
 
 public class GenreNotFoundException extends RuntimeException {
     public GenreNotFoundException(String genre) {

@@ -43,6 +43,18 @@ public class BookAuditService {
         bookAuditRepository.saveAndFlush(BookAuditMapper.mapToBookAudit(event));
     }
 
+    public void updateQuantityOfBook(UpdateQuantityBookAuditEvent event) {
+        event.setUser(getUserForAudit());
+        if (event.getFieldName().equals(TOTAL_QUANTITY)) {
+            event.setNewValue(String.valueOf(event.getBook().getTotalQuantity()));
+        } else {
+            event.setNewValue(String.valueOf(event.getBook().getAvailableQuantity()));
+        }
+        event.setOperationType(AuditEnum.UPDATE);
+        logger.info("Creating an event for updating '" + event.getFieldName() + "' quantity of book with params: " + event);
+        bookAuditRepository.saveAndFlush(BookAuditMapper.mapToBookAudit(event));
+    }
+
     public void updatePublisherOfBook(UpdatePublisherBookAuditEvent event) {
         logger.info("Create and save an event for updating the publisher of a book");
         event.setUser(getUserForAudit());

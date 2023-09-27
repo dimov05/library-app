@@ -28,7 +28,7 @@ public class UserController {
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_MODERATOR') or authentication.name == @userService.getUsernameById(#id)")
     public ResponseEntity<UserDTO> getUserById(@PathVariable("id") Long id) {
-        return new ResponseEntity<>(userService.getUserById(id), HttpStatus.OK);
+        return new ResponseEntity<>(userService.getUserExtendedDTO(id), HttpStatus.OK);
     }
 
     @GetMapping("")
