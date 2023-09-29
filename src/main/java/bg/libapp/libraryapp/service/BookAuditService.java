@@ -1,8 +1,6 @@
 package bg.libapp.libraryapp.service;
 
-import bg.libapp.libraryapp.event.SaveBookAuditEvent;
-import bg.libapp.libraryapp.event.UpdatePublisherBookAuditEvent;
-import bg.libapp.libraryapp.event.UpdateYearBookAuditEvent;
+import bg.libapp.libraryapp.event.*;
 import bg.libapp.libraryapp.model.entity.User;
 import bg.libapp.libraryapp.model.enums.AuditEnum;
 import bg.libapp.libraryapp.model.mappers.BookAuditMapper;
@@ -16,8 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import static bg.libapp.libraryapp.model.constants.ApplicationConstants.PUBLISHER;
-import static bg.libapp.libraryapp.model.constants.ApplicationConstants.YEAR;
+import static bg.libapp.libraryapp.model.constants.ApplicationConstants.*;
 
 @Service
 @Transactional
@@ -34,7 +31,6 @@ public class BookAuditService {
     }
 
     public void updateYearOfBook(UpdateYearBookAuditEvent event) {
-        logger.info("Create and save an event for updating the year of a book");
         event.setUser(getUserForAudit());
         event.setNewValue(String.valueOf(event.getBook().getYear()));
         event.setOperationType(AuditEnum.UPDATE);
@@ -56,7 +52,6 @@ public class BookAuditService {
     }
 
     public void updatePublisherOfBook(UpdatePublisherBookAuditEvent event) {
-        logger.info("Create and save an event for updating the publisher of a book");
         event.setUser(getUserForAudit());
         event.setNewValue(String.valueOf(event.getBook().getPublisher()));
         event.setOperationType(AuditEnum.UPDATE);
@@ -70,6 +65,24 @@ public class BookAuditService {
         event.setNewValue(event.getNewValue());
         logger.info("Creating an event for saving a new book with params: " + event);
         event.setOperationType(AuditEnum.ADD);
+        bookAuditRepository.saveAndFlush(BookAuditMapper.mapToBookAudit(event));
+    }
+
+    public void updateStatusOfBook(UpdateActiveStatusBookAuditEvent event) {
+        event.setUser(getUserForAudit());
+        event.setNewValue(String.valueOf(event.getBook().isActive()));
+        event.setOperationType(AuditEnum.UPDATE);
+        event.setFieldName(IS_ACTIVE);
+        logger.info("Creating an event for updating status of book with params: " + event);
+        bookAuditRepository.saveAndFlush(BookAuditMapper.mapToBookAudit(event));
+    }
+
+    public void updateDeactivationStatusOfBook(UpdateDeactivateReasonBookAuditEvent event) {
+        event.setUser(getUserForAudit());
+        event.setNewValue(String.valueOf(event.getBook().getDeactivateReason()));
+        event.setOperationType(AuditEnum.UPDATE);
+        event.setFieldName(DEACTIVATE_REASON);
+        logger.info("Creating an event for updating status of book with params: " + event);
         bookAuditRepository.saveAndFlush(BookAuditMapper.mapToBookAudit(event));
     }
 
