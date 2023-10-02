@@ -17,23 +17,16 @@ import java.util.Set;
 @RequestMapping("/api/books")
 public class BookController {
     private final BookService bookService;
-    private final RentService rentService;
 
     @Autowired
-    public BookController(BookService bookService, RentService rentService) {
+    public BookController(BookService bookService) {
         this.bookService = bookService;
-        this.rentService = rentService;
     }
 
     @PostMapping()
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_MODERATOR')")
     public ResponseEntity<BookDTO> addBook(@Valid @RequestBody(required = false) BookAddRequest bookAddRequest) {
         return new ResponseEntity<>(this.bookService.saveNewBook(bookAddRequest), HttpStatus.CREATED);
-    }
-    @PutMapping("/return/{id}")
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_MODERATOR') or @rentService.getUsernameByRentId(#rentId) == authentication.name")
-    public ResponseEntity<RentDTO> returnBook(@PathVariable("id") long rentId){
-        return new ResponseEntity<>(rentService.returnBook(rentId),HttpStatus.OK);
     }
 
     @GetMapping("/{isbn}")

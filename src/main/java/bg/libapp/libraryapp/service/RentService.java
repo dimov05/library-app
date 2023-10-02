@@ -186,7 +186,7 @@ public class RentService {
                 .collect(Collectors.toSet());
     }
 
-    public String getUsernameByRentId(long id) {
+    public String lgetUsernameByRentId(long id) {
         Rent rent = getRentById(id);
         return rent.getUser().getUsername();
     }

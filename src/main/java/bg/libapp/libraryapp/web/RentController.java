@@ -24,7 +24,7 @@ public class RentController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_MODERATOR') or @rentService.getUsernameByRentId(#id) == authentication.name")
-    public ResponseEntity<RentDTO> getRendById(@PathVariable("id") long id) {
+    public ResponseEntity<RentDTO> getRentById(@PathVariable("id") long id) {
         return new ResponseEntity<>(rentService.getRentDTOById(id), HttpStatus.OK);
     }
     @PostMapping("/{isbn}")
