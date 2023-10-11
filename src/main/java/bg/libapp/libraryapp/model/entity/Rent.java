@@ -1,6 +1,13 @@
 package bg.libapp.libraryapp.model.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 import java.time.LocalDate;
 
@@ -18,10 +25,10 @@ public class Rent {
     @Column(name = "actual_return_date", nullable = false)
     private LocalDate actualReturnDate;
     @ManyToOne()
-    @JoinColumn(name = "user_id",nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
     @ManyToOne
-    @JoinColumn(name = "book_isbn",nullable = false)
+    @JoinColumn(name = "book_isbn", nullable = false)
     private Book book;
 
     public Rent() {
@@ -66,9 +73,8 @@ public class Rent {
         return actualReturnDate;
     }
 
-    public Rent setActualReturnDate(LocalDate actualReturnDate) {
+    public void setActualReturnDate(LocalDate actualReturnDate) {
         this.actualReturnDate = actualReturnDate;
-        return this;
     }
 
     public User getUser() {

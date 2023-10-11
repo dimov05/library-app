@@ -15,21 +15,22 @@ public class BookChangeStatusRequest {
         this.deactivateReason = deactivateReason;
     }
 
-    public boolean isActive() {
+    public boolean getIsActive() {
         return isActive;
     }
 
-    public void setIsActive(Boolean isActive) {
-        // Handle the conversion from string "true" or "false" to Boolean
-        this.isActive = Boolean.parseBoolean(String.valueOf(isActive).toLowerCase());
+    public BookChangeStatusRequest setIsActive(boolean active) {
+        this.isActive = active;
+        return this;
     }
 
     public String getDeactivateReason() {
         return deactivateReason;
     }
 
-    public void setDeactivateReason(String deactivateReason) {
-        this.deactivateReason = deactivateReason.toUpperCase();
+    public BookChangeStatusRequest setDeactivateReason(String deactivateReason) {
+        this.deactivateReason = deactivateReason;
+        return this;
     }
 
     @Override

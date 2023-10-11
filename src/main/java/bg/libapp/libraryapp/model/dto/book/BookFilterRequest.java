@@ -6,17 +6,11 @@ import org.hibernate.validator.constraints.Length;
 import java.util.Arrays;
 
 public class BookFilterRequest {
-    //    @NotBlank(message = "Title should not be blank")
     @Length(min = 1, max = 150, message = "Title should be between 1 and 150 symbols")
     private String title;
-    //    @NotBlank(message = "Publisher should not be blank")
     @Length(min = 1, max = 100, message = "Publisher name should be between 1 and 100 symbols")
     private String publisher;
-    //    @Min(value = 1000, message = "Year should be between 1000 and now")
-//    @Max(value = 2100, message = "Year should be between 1000 and now")
     private Integer yearFrom;
-    //    @Min(value = 1000, message = "Year should be between 1000 and now")
-//    @Max(value = 2100, message = "Year should be between 1000 and now")
     private Integer yearTo;
     @Pattern(regexp = "^([<>]=?|!=|=):(\\d{1,9})(,[<>]=?|!=|=):(\\d{1,9})*$")
     private String year;

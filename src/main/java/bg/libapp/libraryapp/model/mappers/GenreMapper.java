@@ -1,6 +1,7 @@
 package bg.libapp.libraryapp.model.mappers;
 
 import bg.libapp.libraryapp.model.dto.genre.GenreDTO;
+import bg.libapp.libraryapp.model.dto.genre.GenreRequest;
 import bg.libapp.libraryapp.model.entity.Genre;
 import bg.libapp.libraryapp.service.BookService;
 import org.slf4j.Logger;
@@ -12,6 +13,12 @@ public class GenreMapper {
     public static GenreDTO mapToGenreDTO(Genre genre) {
         logger.info("mapToGenreDTO mapper method called with params " + genre);
         return new GenreDTO()
+                .setName(genre.getName());
+    }
+
+    public static GenreRequest mapToGenreRequest(Genre genre) {
+        logger.info("mapToGenreRequest called with params " + genre);
+        return new GenreRequest()
                 .setName(genre.getName());
     }
 }
