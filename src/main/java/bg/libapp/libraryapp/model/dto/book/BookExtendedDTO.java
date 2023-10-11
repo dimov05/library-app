@@ -84,8 +84,8 @@ public class BookExtendedDTO extends BookDTO {
     }
 
     @Override
-    public BookExtendedDTO setActive(boolean active) {
-        super.setActive(active);
+    public BookExtendedDTO setIsActive(boolean active) {
+        super.setIsActive(active);
         return this;
     }
 

@@ -2,14 +2,15 @@ Create database library_app;
 drop database library_app;
 use library_app;
 
-CREATE TABLE book (
-                      isbn VARCHAR(17) PRIMARY KEY,
-                      title VARCHAR(150) NOT NULL,
-                      year INT NOT NULL,
-                      is_active BOOLEAN NOT NULL DEFAULT TRUE,
-                      deactivate_reason VARCHAR(40),
-                      publisher VARCHAR(100) NOT NULL,
-                      date_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+CREATE TABLE book
+(
+    isbn              VARCHAR(17) PRIMARY KEY,
+    title             VARCHAR(150) NOT NULL,
+    year              INT          NOT NULL,
+    is_active         BOOLEAN      NOT NULL DEFAULT TRUE,
+    deactivate_reason VARCHAR(40),
+    publisher         VARCHAR(100) NOT NULL,
+    date_added        TIMESTAMP             DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
 create table author
@@ -30,7 +31,7 @@ create table user
     first_name    VARCHAR(50)  NOT NULL,
     last_name     VARCHAR(50)  NOT NULL,
     display_name  VARCHAR(50)  NOT NULL,
-    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    is_active     BOOLEAN      NOT NULL DEFAULT TRUE,
     `password`    VARCHAR(255) NOT NULL,
     date_of_birth DATE         NOT NULL,
     `role`        INT          NOT NULL
@@ -80,12 +81,12 @@ CREATE TABLE book_audit
 
 CREATE TABLE rent
 (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    rent_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    expected_return_date TIMESTAMP NOT NULL,
-    actual_return_date TIMESTAMP,
-    user_id BIGINT NOT NULL,
-    book_isbn VARCHAR(17) NOT NULL,
+    id                   BIGINT PRIMARY KEY AUTO_INCREMENT,
+    rent_date            TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    expected_return_date TIMESTAMP                           NOT NULL,
+    actual_return_date   TIMESTAMP,
+    user_id              BIGINT                              NOT NULL,
+    book_isbn            VARCHAR(17)                         NOT NULL,
     CONSTRAINT fk_rent_user FOREIGN KEY (user_id)
         REFERENCES user (id),
     CONSTRAINT fk_rent_book FOREIGN KEY (book_isbn)

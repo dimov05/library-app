@@ -14,7 +14,7 @@ import java.util.Set;
 
 public class BookAddRequest {
     @NotBlank(message = "isbn should not be blank")
-    @ISBN(type = ISBN.Type.ANY)
+    @ISBN(type = ISBN.Type.ANY, message = "ISBN is invalid")
     private String isbn;
     @NotBlank(message = "Title should not be blank")
     @Length(min = 1, max = 150, message = "Title should be between 1 and 150 symbols")

@@ -8,8 +8,7 @@ public class BookDTO {
     private String isbn;
     private String title;
     private int year;
-//    @JsonProperty(namespace = "isActive")
-    private boolean isActive;
+    private Boolean isActive;
 
     private int availableQuantity;
 
@@ -79,11 +78,11 @@ public class BookDTO {
         return this;
     }
 
-    public boolean isActive() {
+    public boolean getIsActive() {
         return isActive;
     }
 
-    public BookDTO setActive(boolean active) {
+    public BookDTO setIsActive(boolean active) {
         isActive = active;
         return this;
     }

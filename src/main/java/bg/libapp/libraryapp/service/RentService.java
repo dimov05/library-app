@@ -1,6 +1,12 @@
 package bg.libapp.libraryapp.service;
 
-import bg.libapp.libraryapp.exceptions.rent.*;
+import bg.libapp.libraryapp.exceptions.rent.CannotRentBookTwiceException;
+import bg.libapp.libraryapp.exceptions.rent.InsufficientAvailableQuantityException;
+import bg.libapp.libraryapp.exceptions.rent.RentAlreadyReturnedException;
+import bg.libapp.libraryapp.exceptions.rent.RentNotFoundException;
+import bg.libapp.libraryapp.exceptions.rent.UserHasProlongedRentsException;
+import bg.libapp.libraryapp.exceptions.rent.UserNotEligibleToRentException;
+import bg.libapp.libraryapp.exceptions.rent.UserRentedMaximumAllowedBooksException;
 import bg.libapp.libraryapp.model.dto.rent.RentAddRequest;
 import bg.libapp.libraryapp.model.dto.rent.RentDTO;
 import bg.libapp.libraryapp.model.entity.Book;
@@ -81,13 +87,13 @@ public class RentService {
         User borrower = userService.getUserByUsername(username);
         String userRole = Role.values()[borrower.getRole()].toString();
         Long userIdToRent = rentAddRequest.getUserId();
-        if (!userRole.equals("ADMIN")
-                && !userRole.equals("MODERATOR")
+        if (!userRole.equals(String.valueOf(Role.ADMIN))
+                && !userRole.equals(String.valueOf(Role.MODERATOR))
                 && userIdToRent != borrower.getId()) {
             logger.error("User is not eligible to rent - not ADMIN/MODERATOR or authenticated user != user for rent request");
             throw new UserNotEligibleToRentException(username, userIdToRent);
         }
-        if (userIdToRent != null && (userRole.equals("ADMIN") || userRole.equals("MODERATOR"))) {
+        if (userIdToRent != null && (userRole.equals(String.valueOf(Role.ADMIN)) || userRole.equals(String.valueOf(Role.MODERATOR)))) {
             borrower = userService.getUserById(userIdToRent);
         }
         return borrower;
@@ -107,7 +113,7 @@ public class RentService {
     }
 
     private void isBookCurrentlyRentedByUser(String isbn, Rent rent) {
-        if (rent.getBook().getIsbn().equals(isbn) && rent.getActualReturnDate() != null) {
+        if (rent.getBook().getIsbn().equals(isbn) && rent.getActualReturnDate() == null) {
             logger.error("Can not rent book twice for book with isbn '" + rent.getBook().getIsbn()
                     + "' and user with id '" + rent.getUser().getId() + "'.");
             throw new CannotRentBookTwiceException(isbn);
@@ -186,7 +192,7 @@ public class RentService {
                 .collect(Collectors.toSet());
     }
 
-    public String lgetUsernameByRentId(long id) {
+    public String getUsernameByRentId(long id) {
         Rent rent = getRentById(id);
         return rent.getUser().getUsername();
     }

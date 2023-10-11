@@ -1,21 +1,30 @@
 package bg.libapp.libraryapp.service;
 
-import bg.libapp.libraryapp.event.*;
-import bg.libapp.libraryapp.exceptions.*;
-import bg.libapp.libraryapp.exceptions.author.AuthorNotFoundException;
+import bg.libapp.libraryapp.event.SaveBookAuditEvent;
+import bg.libapp.libraryapp.event.UpdateActiveStatusBookAuditEvent;
+import bg.libapp.libraryapp.event.UpdateDeactivateReasonBookAuditEvent;
+import bg.libapp.libraryapp.event.UpdatePublisherBookAuditEvent;
+import bg.libapp.libraryapp.event.UpdateQuantityBookAuditEvent;
+import bg.libapp.libraryapp.event.UpdateYearBookAuditEvent;
+import bg.libapp.libraryapp.exceptions.CannotProcessJsonOfEntityException;
 import bg.libapp.libraryapp.exceptions.book.BookAlreadyAddedException;
+import bg.libapp.libraryapp.exceptions.book.BookIsActiveOnDeleteException;
 import bg.libapp.libraryapp.exceptions.book.BookNotActiveException;
 import bg.libapp.libraryapp.exceptions.book.BookNotFoundException;
 import bg.libapp.libraryapp.exceptions.book.NoSuchDeactivateReasonException;
 import bg.libapp.libraryapp.exceptions.genre.GenreNotFoundException;
 import bg.libapp.libraryapp.exceptions.rent.InsufficientTotalQuantityException;
-import bg.libapp.libraryapp.model.dto.book.*;
-import bg.libapp.libraryapp.model.entity.Author;
+import bg.libapp.libraryapp.model.dto.book.BookAddRequest;
+import bg.libapp.libraryapp.model.dto.book.BookChangeStatusRequest;
+import bg.libapp.libraryapp.model.dto.book.BookDTO;
+import bg.libapp.libraryapp.model.dto.book.BookExtendedDTO;
+import bg.libapp.libraryapp.model.dto.book.BookFilterRequest;
+import bg.libapp.libraryapp.model.dto.book.BookUpdatePublisherRequest;
+import bg.libapp.libraryapp.model.dto.book.BookUpdateTotalQuantityRequest;
+import bg.libapp.libraryapp.model.dto.book.BookUpdateYearRequest;
 import bg.libapp.libraryapp.model.entity.Book;
-import bg.libapp.libraryapp.model.entity.Genre;
 import bg.libapp.libraryapp.model.enums.DeactivateReason;
 import bg.libapp.libraryapp.model.mappers.BookMapper;
-import bg.libapp.libraryapp.repository.AuthorRepository;
 import bg.libapp.libraryapp.repository.BookRepository;
 import bg.libapp.libraryapp.repository.GenreRepository;
 import bg.libapp.libraryapp.specifications.BookSpecifications;
@@ -23,6 +32,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.transaction.Transactional;
+import org.apache.commons.lang3.EnumUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,9 +41,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -45,7 +54,6 @@ public class BookService {
     private final Logger logger = LoggerFactory.getLogger(BookService.class);
 
     private final BookRepository bookRepository;
-    private final AuthorRepository authorRepository;
     private final GenreRepository genreRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final ObjectMapper mapper;
@@ -53,16 +61,15 @@ public class BookService {
     private final AuthorService authorService;
 
     @Autowired
-    public BookService(BookRepository bookRepository, AuthorRepository authorRepository, GenreRepository genreRepository, ApplicationEventPublisher eventPublisher, AuthorService authorService) {
+    public BookService(BookRepository bookRepository, GenreRepository genreRepository, ApplicationEventPublisher eventPublisher, AuthorService authorService) {
         this.bookRepository = bookRepository;
-        this.authorRepository = authorRepository;
         this.genreRepository = genreRepository;
         this.eventPublisher = eventPublisher;
         this.authorService = authorService;
         this.mapper = new ObjectMapper().registerModule(new JavaTimeModule());
     }
 
-    public BookExtendedDTO saveNewBook(BookAddRequest bookAddRequest) {
+    public BookDTO saveNewBook(BookAddRequest bookAddRequest) {
         String isbnOfBook = bookAddRequest.getIsbn();
         if (bookRepository.existsByIsbn(isbnOfBook)) {
             logger.error("Book with this isbn is already added");
@@ -86,12 +93,12 @@ public class BookService {
         bookRepository.saveAndFlush(book);
         logger.info("Save a new book with isbn '" + bookAddRequest.getIsbn() + "' and params: " + bookAddRequest);
         eventPublisher.publishEvent(new SaveBookAuditEvent(book, getJsonOfBook(book)));
-        return BookMapper.mapToBookExtendedDTO(book);
+        return BookMapper.mapToBookDTO(book);
     }
 
     public BookDTO deleteByIsbn(String isbn) {
         Book bookToDelete = getBookByIsbnOrThrowException(isbn);
-        isBookActive(bookToDelete);
+        isBookInActive(bookToDelete);
         BookDTO bookToReturn = BookMapper.mapToBookDTO(bookToDelete);
         bookRepository.delete(bookToDelete);
         logger.info("Delete book with isbn '" + isbn + "'");
@@ -119,6 +126,13 @@ public class BookService {
         }
     }
 
+    private void isBookInActive(Book bookToEdit) {
+        if (bookToEdit.isActive()) {
+            logger.error("Book with isbn '" + bookToEdit.getIsbn() + "' is not active!");
+            throw new BookIsActiveOnDeleteException(bookToEdit.getIsbn());
+        }
+    }
+
     public BookDTO updatePublisher(String isbn, BookUpdatePublisherRequest bookUpdatePublisherRequest) {
         Book bookToEdit = getBookByIsbnOrThrowException(isbn);
         String oldValuePublisher = bookToEdit.getPublisher();
@@ -126,7 +140,7 @@ public class BookService {
         if (!oldValuePublisher.equals(newValuePublisher)) {
             bookToEdit.setPublisher(bookUpdatePublisherRequest.getPublisher());
             bookRepository.saveAndFlush(bookToEdit);
-            eventPublisher.publishEvent(new UpdateYearBookAuditEvent(bookToEdit, oldValuePublisher));
+            eventPublisher.publishEvent(new UpdatePublisherBookAuditEvent(bookToEdit, oldValuePublisher));
             logger.info("Updated publisher of book with isbn '" + isbn + "' and params: " + bookUpdatePublisherRequest);
         }
         return BookMapper.mapToBookDTO(bookToEdit);
@@ -146,37 +160,10 @@ public class BookService {
         return book;
     }
 
-    public Set<BookExtendedDTO> getAllBooksByAuthorFirstAndLastName(String firstName, String lastName) {
-        Author author = authorRepository.findAuthorByFirstNameAndLastName(firstName, lastName)
-                .orElseThrow(() -> {
-                    logger.error("Author with this name '" + firstName + " " + lastName + "' was not found!");
-                    return new AuthorNotFoundException(firstName, lastName);
-                });
-        logger.info("getAllBooksByAuthorFirstAndLastName accessed with author first and lastname: '" + firstName + lastName + "'");
-        return bookRepository.findAllByAuthorsContaining(author)
-                .stream()
-                .map(BookMapper::mapToBookExtendedDTO)
-                .collect(Collectors.toSet());
-    }
-
-    public Set<BookExtendedDTO> getAllBooksByGenre(String genre) {
-        logger.info("getAllBooksByGenre with genre = '" + genre + "' was accessed");
-        Genre genreToCheck = genreRepository.findByName(genre)
-                .orElseThrow(() -> {
-                    logger.error("There are no genres with this name '" + genre + "'");
-                    return new GenreNotFoundException(genre);
-                });
-        return bookRepository.findBookByGenresContaining(genreToCheck)
-                .stream()
-                .map(BookMapper::mapToBookExtendedDTO)
-                .collect(Collectors.toSet());
-    }
-
-
     private String getJsonOfBook(Book book) {
         String json;
         try {
-            json = mapper.writeValueAsString(BookMapper.mapToBookExtendedDTO(book));
+            json = mapper.writeValueAsString(BookMapper.mapToBookDTO(book));
         } catch (JsonProcessingException e) {
             logger.error("Can not get json format of book entity!");
             throw new CannotProcessJsonOfEntityException(book);
@@ -264,25 +251,26 @@ public class BookService {
         logger.info("changeStatus of Book method called with params: " + bookChangeStatusRequest);
 
         Book book = getBookByIsbnOrThrowException(isbn);
-        boolean newStatus = bookChangeStatusRequest.isActive();
+        boolean newStatus = bookChangeStatusRequest.getIsActive();
         boolean oldStatus = book.isActive();
         String newReason = bookChangeStatusRequest.getDeactivateReason();
         String oldReason = book.getDeactivateReason();
         String oldStatusString = String.valueOf(oldStatus);
 
         if (newStatus && !oldStatus) {
-            setBookStatusAndReason(book, null, true);
+            book.setActive(true);
+            book.setDeactivateReason(null);
             eventPublisher.publishEvent(new UpdateActiveStatusBookAuditEvent(book, oldStatusString));
             eventPublisher.publishEvent(new UpdateDeactivateReasonBookAuditEvent(book, oldReason));
             logger.info("Activated book with isbn '" + book.getIsbn() + "' and params: " + book);
         } else if (!newStatus) {
-            isValidDeactivateReason(newReason);
-            if (!oldStatus && !Objects.equals(oldReason, newReason)) {
-                book.setDeactivateReason(newReason);
-                eventPublisher.publishEvent(new UpdateDeactivateReasonBookAuditEvent(book, oldReason));
-            } else if (!Objects.equals(oldReason, newReason)) {
-                setBookStatusAndReason(book, newReason, false);
+            isValidDeactivateReason(newReason.toUpperCase());
+            if (oldStatus) {
+                book.setActive(false);
                 eventPublisher.publishEvent(new UpdateActiveStatusBookAuditEvent(book, oldStatusString));
+            }
+            if (!StringUtils.equals(oldReason, newReason)) {
+                book.setDeactivateReason(newReason);
                 eventPublisher.publishEvent(new UpdateDeactivateReasonBookAuditEvent(book, oldReason));
             }
             logger.info("Deactivated book with isbn '" + book.getIsbn() + "' and params: " + book);
@@ -290,14 +278,8 @@ public class BookService {
         return BookMapper.mapToBookDTO(book);
     }
 
-    private static void setBookStatusAndReason(Book book, String newReason, boolean status) {
-        book.setActive(status);
-        book.setDeactivateReason(newReason);
-    }
-
     private void isValidDeactivateReason(String deactivateReason) {
-        boolean isValid = Arrays.stream(DeactivateReason.values()).map(String::valueOf)
-                .collect(Collectors.toSet()).contains(deactivateReason);
+        boolean isValid = EnumUtils.isValidEnum(DeactivateReason.class, deactivateReason);
         if (!isValid) {
             logger.error("There is no such a deactivate reason '" + deactivateReason + "'");
             throw new NoSuchDeactivateReasonException(deactivateReason);
