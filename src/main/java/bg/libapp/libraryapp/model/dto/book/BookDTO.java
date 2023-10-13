@@ -1,7 +1,6 @@
 package bg.libapp.libraryapp.model.dto.book;
 
 import bg.libapp.libraryapp.model.dto.genre.GenreDTO;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Set;
 
@@ -9,8 +8,11 @@ public class BookDTO {
     private String isbn;
     private String title;
     private int year;
-//    @JsonProperty(namespace = "isActive")
-    private boolean isActive;
+    private Boolean isActive;
+
+    private int availableQuantity;
+
+    private int totalQuantity;
     private String deactivateReason;
     private String publisher;
     private Set<GenreDTO> genres;
@@ -18,11 +20,13 @@ public class BookDTO {
     public BookDTO() {
     }
 
-    public BookDTO(String isbn, String title, int year, boolean isActive, String deactivateReason, String publisher, Set<GenreDTO> genres) {
+    public BookDTO(String isbn, String title, int year, boolean isActive, int availableQuantity, int totalQuantity, String deactivateReason, String publisher, Set<GenreDTO> genres) {
         this.isbn = isbn;
         this.title = title;
         this.year = year;
         this.isActive = isActive;
+        this.availableQuantity = availableQuantity;
+        this.totalQuantity = totalQuantity;
         this.deactivateReason = deactivateReason;
         this.publisher = publisher;
         this.genres = genres;
@@ -64,6 +68,7 @@ public class BookDTO {
         return this;
     }
 
+
     public Set<GenreDTO> getGenres() {
         return genres;
     }
@@ -73,11 +78,11 @@ public class BookDTO {
         return this;
     }
 
-    public boolean isActive() {
+    public boolean getIsActive() {
         return isActive;
     }
 
-    public BookDTO setActive(boolean active) {
+    public BookDTO setIsActive(boolean active) {
         isActive = active;
         return this;
     }
@@ -91,6 +96,28 @@ public class BookDTO {
         return this;
     }
 
+    public int getAvailableQuantity() {
+        return availableQuantity;
+    }
+
+    public BookDTO setAvailableQuantity(int availableQuantity) {
+        this.availableQuantity = availableQuantity;
+        return this;
+    }
+
+    public int getTotalQuantity() {
+        return totalQuantity;
+    }
+
+    public BookDTO setTotalQuantity(int totalQuantity) {
+        this.totalQuantity = totalQuantity;
+        return this;
+    }
+
+    public String getDeactivateReason() {
+        return deactivateReason;
+    }
+
     @Override
     public String toString() {
         return "{" +
@@ -98,7 +125,9 @@ public class BookDTO {
                 ", title='" + title + '\'' +
                 ", year=" + year +
                 ", isActive=" + isActive +
-                ", deactivateReason=" + deactivateReason +
+                ", availableQuantity=" + availableQuantity +
+                ", totalQuantity=" + totalQuantity +
+                ", deactivateReason='" + deactivateReason + '\'' +
                 ", publisher='" + publisher + '\'' +
                 ", genres=" + genres +
                 '}';

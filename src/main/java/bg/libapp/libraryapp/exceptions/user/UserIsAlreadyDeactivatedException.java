@@ -1,4 +1,4 @@
-package bg.libapp.libraryapp.exceptions;
+package bg.libapp.libraryapp.exceptions.user;
 
 public class UserIsAlreadyDeactivatedException extends RuntimeException {
     public UserIsAlreadyDeactivatedException(long id) {

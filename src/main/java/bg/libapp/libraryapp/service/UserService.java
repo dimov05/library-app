@@ -1,9 +1,6 @@
 package bg.libapp.libraryapp.service;
 
-import bg.libapp.libraryapp.exceptions.UserIsAlreadyActivatedException;
-import bg.libapp.libraryapp.exceptions.UserIsAlreadyDeactivatedException;
-import bg.libapp.libraryapp.exceptions.UserNotFoundException;
-import bg.libapp.libraryapp.exceptions.UserWithThisUsernameAlreadyExistsException;
+import bg.libapp.libraryapp.exceptions.user.*;
 import bg.libapp.libraryapp.model.dto.user.*;
 import bg.libapp.libraryapp.model.entity.User;
 import bg.libapp.libraryapp.model.mappers.UserMapper;
@@ -49,11 +46,17 @@ public class UserService {
         }
     }
 
-    public UserDTO getUserById(long id) {
-        logger.info("getUserByIs method accessed with id: '" + id + "'");
+    public UserDTO getUserExtendedDTO(long id) {
+        logger.info("getUserDTOById method accessed with id: '" + id + "'");
         User user = userRepository.findById(id)
                 .orElseThrow(() -> logAndThrowException(id));
-        return UserMapper.mapToUserDTO(user);
+        return UserMapper.mapToUserExtendedDTO(user);
+    }
+
+    public User getUserById(long id) {
+        logger.info("getUserById method accessed with id: '" + id + "'");
+        return userRepository.findById(id)
+                .orElseThrow(() -> logAndThrowException(id));
     }
 
     public List<UserDTO> getAllUsers() {
@@ -77,6 +80,11 @@ public class UserService {
     private UserNotFoundException logAndThrowException(long id) {
         logger.info("User with id '" + id + "' was not found!");
         return new UserNotFoundException(id);
+    }
+
+    private UserNotFoundException logAndThrowException(String username) {
+        logger.info("User with username '" + username + "' was not found!");
+        return new UserNotFoundException(username);
     }
 
     public UserDTO changeRoleAndSave(ChangeRoleRequest changeRoleRequest, long id) {
@@ -151,4 +159,9 @@ public class UserService {
         return UserMapper.mapToUserDTO(userToEdit);
     }
 
+    public User getUserByUsername(String username) {
+        logger.info("getUserByUsername method accessed with username '" + username + "'");
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> logAndThrowException(username));
+    }
 }

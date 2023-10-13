@@ -20,6 +20,10 @@ public class Book {
     private String publisher;
     @Column(name = "is_active", nullable = false)
     private boolean isActive;
+    @Column(name = "available_quantity",nullable = false)
+    private int availableQuantity;
+    @Column(name = "total_quantity",nullable = false)
+    private int totalQuantity;
     @Column(name = "deactivate_reason")
     private String deactivateReason;
     @Column(name = "date_added", nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
@@ -40,12 +44,14 @@ public class Book {
     public Book() {
     }
 
-    public Book(String isbn, String title, int year, String publisher, boolean isActive, String deactivateReason, LocalDateTime dateAdded, Set<Genre> genres, Set<Author> authors, Set<BookAudit> audits) {
+    public Book(String isbn, String title, int year, String publisher, boolean isActive, int availableQuantity, int totalQuantity, String deactivateReason, LocalDateTime dateAdded, Set<Genre> genres, Set<Author> authors, Set<BookAudit> audits) {
         this.isbn = isbn;
         this.title = title;
         this.year = year;
         this.publisher = publisher;
         this.isActive = isActive;
+        this.availableQuantity = availableQuantity;
+        this.totalQuantity = totalQuantity;
         this.deactivateReason = deactivateReason;
         this.dateAdded = dateAdded;
         this.genres = genres;
@@ -176,19 +182,21 @@ public class Book {
         return this;
     }
 
-    @Override
-    public String toString() {
-        return "{" +
-                "isbn='" + isbn + '\'' +
-                ", title='" + title + '\'' +
-                ", year=" + year +
-                ", publisher='" + publisher + '\'' +
-                ", isActive=" + isActive +
-                ", deactivateReason='" + deactivateReason + '\'' +
-                ", dateAdded=" + dateAdded +
-                ", genres=" + genres +
-                ", authors=" + authors +
-                ", audits=" + audits +
-                '}';
+    public int getAvailableQuantity() {
+        return availableQuantity;
+    }
+
+    public Book setAvailableQuantity(int availableQuantity) {
+        this.availableQuantity = availableQuantity;
+        return this;
+    }
+
+    public int getTotalQuantity() {
+        return totalQuantity;
+    }
+
+    public Book setTotalQuantity(int totalQuantity) {
+        this.totalQuantity = totalQuantity;
+        return this;
     }
 }

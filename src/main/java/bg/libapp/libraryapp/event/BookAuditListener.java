@@ -20,15 +20,22 @@ public class BookAuditListener {
     }
 
     @EventListener
+    public void handleUpdateQuantityOfBook(UpdateQuantityBookAuditEvent event) {
+        bookAuditService.updateQuantityOfBook(event);
+    }
+
+    @EventListener
     public void handleUpdatePublisherOfBook(UpdatePublisherBookAuditEvent event) {
         bookAuditService.updatePublisherOfBook(event);
     }
+
     @EventListener
-    public void handleUpdateStatusOfBook(UpdateActiveStatusBookAuditEvent event){
+    public void handleUpdateStatusOfBook(UpdateActiveStatusBookAuditEvent event) {
         bookAuditService.updateStatusOfBook(event);
     }
+
     @EventListener
-    public void handleUpdateStatusReasonOfBook(UpdateDeactivateReasonBookAuditEvent event){
+    public void handleUpdateStatusReasonOfBook(UpdateDeactivateReasonBookAuditEvent event) {
         bookAuditService.updateDeactivationStatusOfBook(event);
     }
 

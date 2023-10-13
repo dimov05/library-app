@@ -123,4 +123,18 @@ public class BookAudit {
         this.book = book;
         return this;
     }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "id=" + id +
+                ", eventDate=" + eventDate +
+                ", operationType='" + operationType + '\'' +
+                ", fieldName='" + fieldName + '\'' +
+                ", oldValue='" + oldValue + '\'' +
+                ", newValue='" + newValue + '\'' +
+                ", user=" + user +
+                ", book=" + book +
+                '}';
+    }
 }

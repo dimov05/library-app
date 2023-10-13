@@ -1,4 +1,4 @@
-package bg.libapp.libraryapp.exceptions;
+package bg.libapp.libraryapp.exceptions.book;
 
 public class BookNotFoundException extends RuntimeException {
     public BookNotFoundException(String isbn) {
