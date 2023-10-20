@@ -9,6 +9,9 @@ import bg.libapp.libraryapp.service.BookService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 public class UserMapper {
     private static final Logger logger = LoggerFactory.getLogger(BookService.class);
 
@@ -22,6 +25,7 @@ public class UserMapper {
                 .setPassword(registerUserRequest.getPassword()) // encoding in service
                 .setDateOfBirth(registerUserRequest.getDateOfBirth())
                 .setActive(true)
+                .setBalance(BigDecimal.ZERO)
                 .setRole(Role.USER.ordinal());
     }
 
@@ -33,8 +37,10 @@ public class UserMapper {
                 .setFirstName(user.getFirstName())
                 .setLastName(user.getLastName())
                 .setDisplayName(user.getDisplayName())
-                .setDateOfBirth(user.getDateOfBirth())
+                .setDateOfBirth(user.getDateOfBirth().toString())
+                .setBalance(user.getBalance().setScale(2, RoundingMode.DOWN).toString())
                 .setRole(Role.values()[user.getRole()].name())
+                .setSubscription(user.getSubscription() != null ? user.getSubscription().getSubscriptionType().toString() : null)
                 .setActive(user.isActive());
     }
 
@@ -46,9 +52,11 @@ public class UserMapper {
                 .setFirstName(user.getFirstName())
                 .setLastName(user.getLastName())
                 .setDisplayName(user.getDisplayName())
-                .setDateOfBirth(user.getDateOfBirth())
+                .setDateOfBirth(user.getDateOfBirth().toString())
                 .setRole(Role.values()[user.getRole()].name())
                 .setActive(user.isActive())
+                .setBalance(user.getBalance().setScale(2, RoundingMode.DOWN).toString())
+                .setSubscription(user.getSubscription() != null ? user.getSubscription().getSubscriptionType().toString() : null)
                 .setRents(user.getRents()
                         .stream().map(RentMapper::mapToRentDTO).toList());
     }

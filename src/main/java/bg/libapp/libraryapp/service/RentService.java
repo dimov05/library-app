@@ -7,6 +7,7 @@ import bg.libapp.libraryapp.exceptions.rent.RentNotFoundException;
 import bg.libapp.libraryapp.exceptions.rent.UserHasProlongedRentsException;
 import bg.libapp.libraryapp.exceptions.rent.UserNotEligibleToRentException;
 import bg.libapp.libraryapp.exceptions.rent.UserRentedMaximumAllowedBooksException;
+import bg.libapp.libraryapp.exceptions.user.UserDoesNotHaveSubscriptionException;
 import bg.libapp.libraryapp.model.dto.rent.RentAddRequest;
 import bg.libapp.libraryapp.model.dto.rent.RentDTO;
 import bg.libapp.libraryapp.model.entity.Book;
@@ -26,8 +27,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static bg.libapp.libraryapp.model.constants.ApplicationConstants.ONE_MONTH;
 
 @Transactional
 @Service
@@ -54,13 +53,13 @@ public class RentService {
         logger.info("rentBook method called with borrower username '" + borrower.getUsername()
                 + "' for book with isbn '" + isbn
                 + "' with requestParams: " + rentAddRequest);
-
+        int daysAvailableToRent = borrower.getSubscription().getDaysAllowed();
         checkRequirementsForRentCreation(isbn, borrower);
         Rent rent = new Rent()
                 .setRentDate(LocalDate.now())
                 .setBook(book)
                 .setUser(borrower)
-                .setExpectedReturnDate(getExpectedDateToSet(rentAddRequest));
+                .setExpectedReturnDate(LocalDate.now().plusDays(daysAvailableToRent));
         rentRepository.saveAndFlush(rent);
         borrower.addRent(rent);
         bookRepository.saveAndFlush(book.setAvailableQuantity(book.getAvailableQuantity() - 1));
@@ -94,17 +93,21 @@ public class RentService {
         if (userIdToRent != null && (userRole.equals(String.valueOf(Role.ADMIN)) || userRole.equals(String.valueOf(Role.MODERATOR)))) {
             borrower = userService.getUserById(userIdToRent);
         }
+        if (borrower.getSubscription() == null) {
+            throw new UserDoesNotHaveSubscriptionException(borrower.getId());
+        }
         return borrower;
     }
 
     private void checkRequirementsForRentCreation(String isbn, User borrower) {
         int counterOfCurrentRents = 0;
+        int maxAllowedRents = borrower.getSubscription().getRentsAllowed();
         for (Rent rent : borrower.getRents()) {
             isBookCurrentlyRentedByUser(isbn, rent);
             if (bookNotReturned(rent)) {
                 hasUserProlongedRents(borrower, rent);
                 if (hasEnoughTimeToReturnBook(rent)) {
-                    counterOfCurrentRents = countBorrowedBookAndThrowExceptionWhenMoreThanTwo(borrower, counterOfCurrentRents);
+                    counterOfCurrentRents = countBorrowedBookAndThrowExceptionWhenMoreThanTwo(borrower, counterOfCurrentRents, maxAllowedRents);
                 }
             }
         }
@@ -133,19 +136,13 @@ public class RentService {
         return rent.getExpectedReturnDate().isAfter(LocalDate.now());
     }
 
-    private int countBorrowedBookAndThrowExceptionWhenMoreThanTwo(User borrower, int counterOfCurrentRents) {
+    private int countBorrowedBookAndThrowExceptionWhenMoreThanTwo(User borrower, int counterOfCurrentRents, int maxAllowedRents) {
         counterOfCurrentRents++;
-        if (counterOfCurrentRents == 3) {
+        if (counterOfCurrentRents == maxAllowedRents) {
             logger.error("User with id '" + borrower.getId() + "' has rented already 3 books!");
             throw new UserRentedMaximumAllowedBooksException(borrower.getId());
         }
         return counterOfCurrentRents;
-    }
-
-    private static LocalDate getExpectedDateToSet(RentAddRequest rentAddRequest) {
-        return rentAddRequest.getExpectedReturnDate() != null
-                ? rentAddRequest.getExpectedReturnDate()
-                : LocalDate.now().plusMonths(ONE_MONTH);
     }
 
     public RentDTO returnBook(long rentId) {

@@ -1,5 +1,7 @@
 package bg.libapp.libraryapp.web;
 
+import bg.libapp.libraryapp.model.dto.user.AddBalanceRequest;
+import bg.libapp.libraryapp.model.dto.user.AddSubscriptionRequest;
 import bg.libapp.libraryapp.model.dto.user.ChangePasswordRequest;
 import bg.libapp.libraryapp.model.dto.user.ChangeRoleRequest;
 import bg.libapp.libraryapp.model.dto.user.UpdateUserRequest;
@@ -53,6 +55,24 @@ public class UserController {
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<UserDTO> changeRole(@Valid @RequestBody ChangeRoleRequest changeRoleRequest, @PathVariable("id") long id) {
         return new ResponseEntity<>(userService.changeRoleAndSave(changeRoleRequest, id), HttpStatus.OK);
+    }
+
+    @PutMapping("/subscribe/{id}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')or @userService.getUsernameById(#id) == authentication.name")
+    public ResponseEntity<UserDTO> subscribe(@Valid @RequestBody AddSubscriptionRequest addSubscriptionRequest, @PathVariable("id") long id) {
+        return new ResponseEntity<>(userService.addSubscription(addSubscriptionRequest, id), HttpStatus.OK);
+    }
+
+    @PutMapping("/unsubscribe/{id}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')or @userService.getUsernameById(#id) == authentication.name")
+    public ResponseEntity<UserDTO> unsubscribe(@PathVariable("id") long id) {
+        return new ResponseEntity<>(userService.unsubscribe(id), HttpStatus.OK);
+    }
+
+    @PutMapping("/add-balance/{id}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')or @userService.getUsernameById(#id) == authentication.name")
+    public ResponseEntity<UserDTO> addBalance(@Valid @RequestBody AddBalanceRequest addBalanceRequest, @PathVariable("id") long id) {
+        return new ResponseEntity<>(userService.addBalanceToUser(addBalanceRequest, id), HttpStatus.OK);
     }
 
     @PutMapping("/change-password/{id}")
