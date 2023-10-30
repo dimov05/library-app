@@ -16,6 +16,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import static bg.libapp.libraryapp.model.constants.ApplicationConstants.USER_LOGGED_IN_SUCCESSFULLY;
+import static bg.libapp.libraryapp.model.constants.ApplicationConstants.USER_LOGGED_OUT_SUCCESSFULLY;
+
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -37,7 +40,7 @@ public class AuthController {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         System.out.println(authentication.getName());
         System.out.println(authentication.getAuthorities().toString());
-        return new ResponseEntity<>("User logged in successfully!", HttpStatus.OK);
+        return new ResponseEntity<>(USER_LOGGED_IN_SUCCESSFULLY, HttpStatus.OK);
     }
 
     @PostMapping("/register")
@@ -49,6 +52,6 @@ public class AuthController {
     public ResponseEntity<String> logoutUser() {
         userService.logout();
 
-        return new ResponseEntity<>("Successfully logged out!", HttpStatus.OK);
+        return new ResponseEntity<>(USER_LOGGED_OUT_SUCCESSFULLY, HttpStatus.OK);
     }
 }

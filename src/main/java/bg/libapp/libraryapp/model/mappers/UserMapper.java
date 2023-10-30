@@ -12,11 +12,15 @@ import org.slf4j.LoggerFactory;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+import static bg.libapp.libraryapp.model.constants.ApplicationConstants.MAP_TO_USER_ACCESSED;
+import static bg.libapp.libraryapp.model.constants.ApplicationConstants.MAP_TO_USER_DTO_ACCESSED;
+import static bg.libapp.libraryapp.model.constants.ApplicationConstants.MAP_TO_USER_EXTENDED_DTO_ACCESSED;
+
 public class UserMapper {
     private static final Logger logger = LoggerFactory.getLogger(BookService.class);
 
     public static User mapToUser(RegisterUserRequest registerUserRequest) {
-        logger.info("mapToUser mapper method called with params " + registerUserRequest);
+        logger.info(MAP_TO_USER_ACCESSED, registerUserRequest);
         return new User()
                 .setUsername(registerUserRequest.getUsername())
                 .setFirstName(registerUserRequest.getFirstName())
@@ -30,7 +34,7 @@ public class UserMapper {
     }
 
     public static UserDTO mapToUserDTO(User user) {
-        logger.info("mapToUserDTO mapper method called with params " + user);
+        logger.info(MAP_TO_USER_DTO_ACCESSED, user);
         return new UserDTO()
                 .setId(user.getId())
                 .setUsername(user.getUsername())
@@ -45,7 +49,7 @@ public class UserMapper {
     }
 
     public static UserExtendedDTO mapToUserExtendedDTO(User user) {
-        logger.info("mapToUserExtendedDTO mapper method called with params " + user);
+        logger.info(MAP_TO_USER_EXTENDED_DTO_ACCESSED, user);
         return new UserExtendedDTO()
                 .setId(user.getId())
                 .setUsername(user.getUsername())

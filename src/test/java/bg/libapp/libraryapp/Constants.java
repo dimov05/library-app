@@ -1,5 +1,6 @@
 package bg.libapp.libraryapp;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public class Constants {
@@ -12,8 +13,12 @@ public class Constants {
 
     public static final String PUBLISHER_SIZE_EXCEPTION = "Publisher name should be between 1 and 100 symbols";
     public static final String PUBLISHER_NOT_BLANK_EXCEPTION = "Publisher should not be blank";
+    public static final String AMOUNT_TO_ADD_TO_BALANCE_MUST_BE_MORE_THAN_ZERO = "Amount to add to balance must be more than 0.00";
+    public static final String AMOUNT_TO_ADD_TO_BALANCE_MUST_BE_LESS_THAN_1000 = "Amount should be less than 1000";
     public static final String YEAR_RANGE_EXCEPTION = "Year should be between 1000 and now";
     public static final String RANDOM_NAME = "RandomName";
+    public static final BigDecimal TAX_PER_BOOK_PER_DAY = BigDecimal.valueOf(0.25);
+
     public static final String BAD_DEACTIVATE_REASON = "BADREASON";
     public static final String INVALID_ISBN_EXCEPTION = "Invalid isbn";
     public static final String INVALID_ISBN = "9asdad23123123dasda-6";

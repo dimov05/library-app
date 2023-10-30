@@ -17,6 +17,6 @@ public class TaxUnsubscribedUserForRentedBooks {
     // Everyday of month at 02:00 am TODO: every day at 02:00 AM
     @Scheduled(cron = "0 0 2 * * *")
     public void taxUnsubscribedUsersForRentedBooks() {
-        userService.taxUnsubscribedUsersForRentedBooks();
+        userService.taxUsersForProlongedRents();
     }
 }

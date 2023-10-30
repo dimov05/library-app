@@ -6,11 +6,13 @@ import bg.libapp.libraryapp.service.BookService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static bg.libapp.libraryapp.model.constants.ApplicationConstants.MAP_TO_GENRE_DTO_ACCESSED;
+
 public class GenreMapper {
     private static final Logger logger = LoggerFactory.getLogger(BookService.class);
 
     public static GenreDTO mapToGenreDTO(Genre genre) {
-        logger.info("mapToGenreDTO mapper method called with params " + genre);
+        logger.info(MAP_TO_GENRE_DTO_ACCESSED, genre);
         return new GenreDTO()
                 .setName(genre.getName());
     }

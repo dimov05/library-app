@@ -283,21 +283,48 @@ public class LibraryAppBaseTest {
                 .setPublisher("Ciela")
                 .setYear(YEAR);
     }
+
     protected int getDaysTillEndOfMonth() {
         LocalDate currentDate = LocalDate.now();
         LocalDate lastDayOfMonth = currentDate.with(TemporalAdjusters.lastDayOfMonth());
         return currentDate.until(lastDayOfMonth).getDays();
     }
+
     protected BigDecimal calculateAmountTillEndOfMount(int daysTillEndOfMonth, BigDecimal price) {
         return BigDecimal.valueOf(daysTillEndOfMonth)
                 .divide(BigDecimal.valueOf(DAYS_IN_MONTH), 3, RoundingMode.CEILING)
                 .multiply(price);
     }
+
     protected List<Rent> initRents(User user, List<Book> books) {
         List<Rent> rents = new ArrayList<>();
         for (Book book : books) {
             rents.add(insertRentForBookAndUser(book, user));
         }
         return rents;
+    }
+
+    protected List<Book> initThreeBooks() {
+        Book book1 = insertTestBook();
+        Book book2 = insertSecondTestBook();
+        Book book3 = insertThirdTestBook();
+        return List.of(book1, book2, book3);
+    }
+
+    protected List<Book> initFourBooks() {
+        Book book1 = insertTestBook();
+        Book book2 = insertSecondTestBook();
+        Book book3 = insertThirdTestBook();
+        Book book4 = insertFourthTestBook();
+        return List.of(book1, book2, book3, book4);
+    }
+
+    protected List<Book> initFiveBooks() {
+        Book book1 = insertTestBook();
+        Book book2 = insertSecondTestBook();
+        Book book3 = insertThirdTestBook();
+        Book book4 = insertFourthTestBook();
+        Book book5 = insertFifthTestBook();
+        return List.of(book1, book2, book3, book4, book5);
     }
 }

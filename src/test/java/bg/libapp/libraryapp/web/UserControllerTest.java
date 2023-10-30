@@ -1,6 +1,7 @@
 package bg.libapp.libraryapp.web;
 
 import bg.libapp.libraryapp.LibraryAppBaseTest;
+import bg.libapp.libraryapp.model.dto.user.AddBalanceRequest;
 import bg.libapp.libraryapp.model.dto.user.AddSubscriptionRequest;
 import bg.libapp.libraryapp.model.dto.user.ChangePasswordRequest;
 import bg.libapp.libraryapp.model.dto.user.ChangeRoleRequest;
@@ -21,13 +22,16 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static bg.libapp.libraryapp.Constants.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
 class UserControllerTest extends LibraryAppBaseTest {
     @Test
@@ -698,6 +702,38 @@ class UserControllerTest extends LibraryAppBaseTest {
 
     @Test
     @Transactional
+    void subscribeUser_SucceedBronzeSubscription_AuthorizedAsUser() throws Exception {
+        User user = insertUser();
+        Subscription bronze = subscriptionRepository.findById(1L).orElse(null);
+        user.setSubscription(null);
+        user.setBalance(BigDecimal.valueOf(100));
+        userRepository.saveAndFlush(user);
+        Assertions.assertNull(user.getSubscription());
+        AddSubscriptionRequest addSubscriptionRequest = new AddSubscriptionRequest().setSubscriptionType(bronze.getId());
+        MockHttpServletResponse response = this.mockMvc.perform(put("/api/users/subscribe/" + user.getId())
+                        .with(user(user.getUsername()).password(user.getPassword()).roles(String.valueOf(Role.USER)))
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(addSubscriptionRequest))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn().getResponse();
+        int daysTillEndOfMonth = getDaysTillEndOfMonth();
+        BigDecimal priceTillEndOfMonth = calculateAmountTillEndOfMount(daysTillEndOfMonth, bronze.getPrice());
+        UserDTO userDTO = objectMapper.readValue(response.getContentAsString(), UserDTO.class);
+        Assertions.assertNotNull(userDTO);
+        Assertions.assertNotNull(userDTO.getSubscription());
+        Assertions.assertEquals(bronze.getSubscriptionType().toString(), userDTO.getSubscription());
+        Assertions.assertEquals(user.getId(), userDTO.getId());
+        Assertions.assertEquals(BigDecimal.valueOf(100).subtract(priceTillEndOfMonth).setScale(2).toString(), userDTO.getBalance());
+        Assertions.assertEquals(user.getUsername(), userDTO.getUsername());
+        Assertions.assertEquals(user.getDisplayName(), userDTO.getDisplayName());
+        Assertions.assertEquals(user.getDateOfBirth().toString(), userDTO.getDateOfBirth());
+        Assertions.assertEquals(user.getFirstName(), userDTO.getFirstName());
+        Assertions.assertEquals(user.getLastName(), userDTO.getLastName());
+    }
+
+    @Test
+    @Transactional
     void subscribeUser_SucceedSilverSubscription_AuthorizedAsAdmin() throws Exception {
         User admin = insertAdmin();
         User user = insertUser();
@@ -1063,16 +1099,13 @@ class UserControllerTest extends LibraryAppBaseTest {
 
         Assertions.assertEquals(String.format(NOT_ENOUGH_BALANCE_TO_SUBSCRIBE, user.getId(), user.getBalance().toString(), golden.getSubscriptionType().toString()), error);
     }
+
     @Test
     @Transactional
-    void testSubscribe_Exception_CannotDowngradeOnMoreRentedBooksThanAllowedByDowngradedSubscription() throws Exception {
+    void testSubscribe_Exception_CannotDowngradeOnMoreRentedBooksThanAllowedByDowngradedSubscription_FromSilverToBronze() throws Exception {
         User admin = insertAdmin();
         User user = insertUser();
-        List<Book> books = new ArrayList<>();
-        books.add(insertTestBook());
-        books.add(insertSecondTestBook());
-        books.add(insertThirdTestBook());
-        books.add(insertFifthTestBook());
+        List<Book> books = initFourBooks();
         List<Rent> rents = initRents(user, books);
         rentRepository.saveAllAndFlush(rents);
         rents.forEach(user::addRent);
@@ -1094,6 +1127,63 @@ class UserControllerTest extends LibraryAppBaseTest {
 
         Assertions.assertEquals(String.format(USER_CANNOT_DOWNGRADE_ON_MORE_RENTS_THAN_ALLOWED, user.getId()), error);
     }
+
+    @Test
+    @Transactional
+    void testSubscribe_Exception_CannotDowngradeOnMoreRentedBooksThanAllowedByDowngradedSubscription_FromGoldenToBronze() throws Exception {
+        User admin = insertAdmin();
+        User user = insertUser();
+        List<Book> books = initFourBooks();
+        List<Rent> rents = initRents(user, books);
+        rentRepository.saveAllAndFlush(rents);
+        rents.forEach(user::addRent);
+        userRepository.saveAndFlush(user);
+        Subscription golden = subscriptionRepository.findById(3L).orElse(null);
+        Subscription bronze = subscriptionRepository.findById(1L).orElse(null);
+        user.setSubscription(golden);
+        userRepository.saveAndFlush(user);
+        Assertions.assertNotNull(user.getSubscription());
+        AddSubscriptionRequest addSubscriptionRequest = new AddSubscriptionRequest().setSubscriptionType(bronze.getId());
+        MockHttpServletResponse response = this.mockMvc.perform(put("/api/users/subscribe/" + user.getId())
+                        .with(user(admin.getUsername()).password(admin.getPassword()).roles(String.valueOf(Role.ADMIN)))
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(addSubscriptionRequest))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isConflict())
+                .andReturn().getResponse();
+        String error = response.getContentAsString();
+
+        Assertions.assertEquals(String.format(USER_CANNOT_DOWNGRADE_ON_MORE_RENTS_THAN_ALLOWED, user.getId()), error);
+    }
+
+    @Test
+    @Transactional
+    void testSubscribe_Exception_CannotDowngradeOnMoreRentedBooksThanAllowedByDowngradedSubscription_FromGoldenToSilver() throws Exception {
+        User admin = insertAdmin();
+        User user = insertUser();
+        List<Book> books = initFiveBooks();
+        List<Rent> rents = initRents(user, books);
+        rentRepository.saveAllAndFlush(rents);
+        rents.forEach(user::addRent);
+        userRepository.saveAndFlush(user);
+        Subscription golden = subscriptionRepository.findById(3L).orElse(null);
+        Subscription silver = subscriptionRepository.findById(1L).orElse(null);
+        user.setSubscription(golden);
+        userRepository.saveAndFlush(user);
+        Assertions.assertNotNull(user.getSubscription());
+        AddSubscriptionRequest addSubscriptionRequest = new AddSubscriptionRequest().setSubscriptionType(silver.getId());
+        MockHttpServletResponse response = this.mockMvc.perform(put("/api/users/subscribe/" + user.getId())
+                        .with(user(admin.getUsername()).password(admin.getPassword()).roles(String.valueOf(Role.ADMIN)))
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(addSubscriptionRequest))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isConflict())
+                .andReturn().getResponse();
+        String error = response.getContentAsString();
+
+        Assertions.assertEquals(String.format(USER_CANNOT_DOWNGRADE_ON_MORE_RENTS_THAN_ALLOWED, user.getId()), error);
+    }
+
     @Test
     @Transactional
     void subscribeUser_SucceedDowngradeSubscriptionFromSilverToBronze() throws Exception {
@@ -1124,13 +1214,90 @@ class UserControllerTest extends LibraryAppBaseTest {
         Assertions.assertNotNull(userDTO.getSubscription());
         Assertions.assertEquals(bronze.getSubscriptionType().toString(), userDTO.getSubscription());
         Assertions.assertEquals(user.getId(), userDTO.getId());
-        Assertions.assertEquals(BigDecimal.valueOf(100).setScale(2).toString(),userDTO.getBalance());
+        Assertions.assertEquals(BigDecimal.valueOf(100).setScale(2).toString(), userDTO.getBalance());
         Assertions.assertEquals(user.getUsername(), userDTO.getUsername());
         Assertions.assertEquals(user.getDisplayName(), userDTO.getDisplayName());
         Assertions.assertEquals(user.getDateOfBirth().toString(), userDTO.getDateOfBirth());
         Assertions.assertEquals(user.getFirstName(), userDTO.getFirstName());
         Assertions.assertEquals(user.getLastName(), userDTO.getLastName());
     }
+
+    @Test
+    @Transactional
+    void subscribeUser_SucceedDowngradeSubscriptionFromGoldenToBronze() throws Exception {
+        User user = insertUser();
+        List<Book> books = new ArrayList<>();
+        books.add(insertTestBook());
+        books.add(insertSecondTestBook());
+        List<Rent> rents = initRents(user, books);
+        rentRepository.saveAllAndFlush(rents);
+        rents.forEach(user::addRent);
+        user.setBalance(BigDecimal.valueOf(100));
+        userRepository.saveAndFlush(user);
+        Subscription golden = subscriptionRepository.findById(3L).orElse(null);
+        Subscription bronze = subscriptionRepository.findById(1L).orElse(null);
+        user.setSubscription(golden);
+        userRepository.saveAndFlush(user);
+        Assertions.assertNotNull(user.getSubscription());
+        AddSubscriptionRequest addSubscriptionRequest = new AddSubscriptionRequest().setSubscriptionType(bronze.getId());
+        MockHttpServletResponse response = this.mockMvc.perform(put("/api/users/subscribe/" + user.getId())
+                        .with(user(user.getUsername()).password(user.getPassword()).roles(String.valueOf(Role.USER)))
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(addSubscriptionRequest))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn().getResponse();
+        UserDTO userDTO = objectMapper.readValue(response.getContentAsString(), UserDTO.class);
+        Assertions.assertNotNull(userDTO);
+        Assertions.assertNotNull(userDTO.getSubscription());
+        Assertions.assertEquals(bronze.getSubscriptionType().toString(), userDTO.getSubscription());
+        Assertions.assertEquals(user.getId(), userDTO.getId());
+        Assertions.assertEquals(BigDecimal.valueOf(100).setScale(2).toString(), userDTO.getBalance());
+        Assertions.assertEquals(user.getUsername(), userDTO.getUsername());
+        Assertions.assertEquals(user.getDisplayName(), userDTO.getDisplayName());
+        Assertions.assertEquals(user.getDateOfBirth().toString(), userDTO.getDateOfBirth());
+        Assertions.assertEquals(user.getFirstName(), userDTO.getFirstName());
+        Assertions.assertEquals(user.getLastName(), userDTO.getLastName());
+    }
+
+    @Test
+    @Transactional
+    void subscribeUser_SucceedDowngradeSubscriptionFromGoldenToSilver() throws Exception {
+        User user = insertUser();
+        List<Book> books = new ArrayList<>();
+        books.add(insertTestBook());
+        books.add(insertSecondTestBook());
+        List<Rent> rents = initRents(user, books);
+        rentRepository.saveAllAndFlush(rents);
+        rents.forEach(user::addRent);
+        user.setBalance(BigDecimal.valueOf(100));
+        userRepository.saveAndFlush(user);
+        Subscription golden = subscriptionRepository.findById(3L).orElse(null);
+        Subscription silver = subscriptionRepository.findById(2L).orElse(null);
+        user.setSubscription(golden);
+        userRepository.saveAndFlush(user);
+        Assertions.assertNotNull(user.getSubscription());
+        AddSubscriptionRequest addSubscriptionRequest = new AddSubscriptionRequest().setSubscriptionType(silver.getId());
+        MockHttpServletResponse response = this.mockMvc.perform(put("/api/users/subscribe/" + user.getId())
+                        .with(user(user.getUsername()).password(user.getPassword()).roles(String.valueOf(Role.USER)))
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(addSubscriptionRequest))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn().getResponse();
+        UserDTO userDTO = objectMapper.readValue(response.getContentAsString(), UserDTO.class);
+        Assertions.assertNotNull(userDTO);
+        Assertions.assertNotNull(userDTO.getSubscription());
+        Assertions.assertEquals(silver.getSubscriptionType().toString(), userDTO.getSubscription());
+        Assertions.assertEquals(user.getId(), userDTO.getId());
+        Assertions.assertEquals(BigDecimal.valueOf(100).setScale(2).toString(), userDTO.getBalance());
+        Assertions.assertEquals(user.getUsername(), userDTO.getUsername());
+        Assertions.assertEquals(user.getDisplayName(), userDTO.getDisplayName());
+        Assertions.assertEquals(user.getDateOfBirth().toString(), userDTO.getDateOfBirth());
+        Assertions.assertEquals(user.getFirstName(), userDTO.getFirstName());
+        Assertions.assertEquals(user.getLastName(), userDTO.getLastName());
+    }
+
     @Test
     @Transactional
     void unsubscribeUser_Succeed_AsAdmin() throws Exception {
@@ -1152,7 +1319,7 @@ class UserControllerTest extends LibraryAppBaseTest {
         Assertions.assertNotNull(userDTO.getSubscription());
         Assertions.assertTrue(user.isHasUnsubscribed());
         Assertions.assertEquals(user.getId(), userDTO.getId());
-        Assertions.assertEquals(bronze.getSubscriptionType().toString(),userDTO.getSubscription());
+        Assertions.assertEquals(bronze.getSubscriptionType().toString(), userDTO.getSubscription());
         Assertions.assertEquals(BigDecimal.valueOf(100).setScale(2).toString(), userDTO.getBalance());
         Assertions.assertEquals(user.getUsername(), userDTO.getUsername());
         Assertions.assertEquals(user.getDisplayName(), userDTO.getDisplayName());
@@ -1160,37 +1327,7 @@ class UserControllerTest extends LibraryAppBaseTest {
         Assertions.assertEquals(user.getFirstName(), userDTO.getFirstName());
         Assertions.assertEquals(user.getLastName(), userDTO.getLastName());
     }
-    @Test
-    @Transactional
-    void subscribeUser_SucceedBronzeSubscription_AuthorizedAsUser() throws Exception {
-        User user = insertUser();
-        Subscription bronze = subscriptionRepository.findById(1L).orElse(null);
-        user.setSubscription(null);
-        user.setBalance(BigDecimal.valueOf(100));
-        userRepository.saveAndFlush(user);
-        Assertions.assertNull(user.getSubscription());
-        AddSubscriptionRequest addSubscriptionRequest = new AddSubscriptionRequest().setSubscriptionType(bronze.getId());
-        MockHttpServletResponse response = this.mockMvc.perform(put("/api/users/subscribe/" + user.getId())
-                        .with(user(user.getUsername()).password(user.getPassword()).roles(String.valueOf(Role.USER)))
-                        .accept(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(addSubscriptionRequest))
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andReturn().getResponse();
-        int daysTillEndOfMonth = getDaysTillEndOfMonth();
-        BigDecimal priceTillEndOfMonth = calculateAmountTillEndOfMount(daysTillEndOfMonth, bronze.getPrice());
-        UserDTO userDTO = objectMapper.readValue(response.getContentAsString(), UserDTO.class);
-        Assertions.assertNotNull(userDTO);
-        Assertions.assertNotNull(userDTO.getSubscription());
-        Assertions.assertEquals(bronze.getSubscriptionType().toString(), userDTO.getSubscription());
-        Assertions.assertEquals(user.getId(), userDTO.getId());
-        Assertions.assertEquals(BigDecimal.valueOf(100).subtract(priceTillEndOfMonth).setScale(2).toString(), userDTO.getBalance());
-        Assertions.assertEquals(user.getUsername(), userDTO.getUsername());
-        Assertions.assertEquals(user.getDisplayName(), userDTO.getDisplayName());
-        Assertions.assertEquals(user.getDateOfBirth().toString(), userDTO.getDateOfBirth());
-        Assertions.assertEquals(user.getFirstName(), userDTO.getFirstName());
-        Assertions.assertEquals(user.getLastName(), userDTO.getLastName());
-    }
+
     @Test
     @Transactional
     void unsubscribeUser_Forbidden_OnUserUnsubscribingForAnotherUser() throws Exception {
@@ -1203,6 +1340,7 @@ class UserControllerTest extends LibraryAppBaseTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isForbidden());
     }
+
     @Test
     @Transactional
     void unsubscribeUser_Exception_OnUserWithThisIdNotFound() throws Exception {
@@ -1216,5 +1354,255 @@ class UserControllerTest extends LibraryAppBaseTest {
         String error = response.getContentAsString();
 
         Assertions.assertEquals(String.format(USER_WITH_ID_NOT_FOUND, BAD_ID), error);
+    }
+
+    @Test
+    @Transactional
+    void addBalance_Succeed_OnAdminAddingBalanceForUser() throws Exception {
+        User user = insertUser();
+        User admin = insertAdmin();
+        BigDecimal amountToAdd = BigDecimal.valueOf(50);
+        AddBalanceRequest addBalanceRequest = new AddBalanceRequest().setBalance(amountToAdd);
+        MockHttpServletResponse response = this.mockMvc.perform(put("/api/users/add-balance/" + user.getId())
+                        .with(user(admin.getUsername()).password(admin.getPassword()).roles(String.valueOf(Role.ADMIN)))
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(addBalanceRequest))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn().getResponse();
+        UserDTO userDTO = objectMapper.readValue(response.getContentAsString(), UserDTO.class);
+
+        Assertions.assertNotNull(userDTO);
+        Assertions.assertEquals(user.getId(), userDTO.getId());
+        Assertions.assertEquals(amountToAdd.setScale(2).toString(), userDTO.getBalance());
+        Assertions.assertEquals(user.getUsername(), userDTO.getUsername());
+        Assertions.assertEquals(user.getDisplayName(), userDTO.getDisplayName());
+        Assertions.assertEquals(user.getDateOfBirth().toString(), userDTO.getDateOfBirth());
+        Assertions.assertEquals(user.getFirstName(), userDTO.getFirstName());
+        Assertions.assertEquals(user.getLastName(), userDTO.getLastName());
+    }
+
+    @Test
+    @Transactional
+    void addBalance_Succeed_OnUserAddingBalanceForHimself() throws Exception {
+        User user = insertUser();
+        BigDecimal amountToAdd = BigDecimal.valueOf(50);
+        AddBalanceRequest addBalanceRequest = new AddBalanceRequest().setBalance(amountToAdd);
+        MockHttpServletResponse response = this.mockMvc.perform(put("/api/users/add-balance/" + user.getId())
+                        .with(user(user.getUsername()).password(user.getPassword()).roles(String.valueOf(Role.ADMIN)))
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(addBalanceRequest))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn().getResponse();
+        UserDTO userDTO = objectMapper.readValue(response.getContentAsString(), UserDTO.class);
+
+        Assertions.assertNotNull(userDTO);
+        Assertions.assertEquals(user.getId(), userDTO.getId());
+        Assertions.assertEquals(amountToAdd.setScale(2).toString(), userDTO.getBalance());
+        Assertions.assertEquals(user.getUsername(), userDTO.getUsername());
+        Assertions.assertEquals(user.getDisplayName(), userDTO.getDisplayName());
+        Assertions.assertEquals(user.getDateOfBirth().toString(), userDTO.getDateOfBirth());
+        Assertions.assertEquals(user.getFirstName(), userDTO.getFirstName());
+        Assertions.assertEquals(user.getLastName(), userDTO.getLastName());
+    }
+
+    @Test
+    @Transactional
+    void addBalance_Forbidden_OnUserAddingBalanceForAnotherUser() throws Exception {
+        User user = insertUser();
+        User user2 = insertUser2();
+        BigDecimal amountToAdd = BigDecimal.valueOf(50);
+        AddBalanceRequest addBalanceRequest = new AddBalanceRequest().setBalance(amountToAdd);
+        this.mockMvc.perform(put("/api/users/add-balance/" + user.getId())
+                        .with(user(user2.getUsername()).password(user2.getPassword()).roles(String.valueOf(Role.USER)))
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(addBalanceRequest))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isForbidden())
+                .andReturn().getResponse();
+    }
+
+    @Test
+    @Transactional
+    void addBalance_Exception_OnUserNotFound() throws Exception {
+        User admin = insertAdmin();
+        BigDecimal amountToAdd = BigDecimal.valueOf(50);
+        AddBalanceRequest addBalanceRequest = new AddBalanceRequest().setBalance(amountToAdd);
+        MockHttpServletResponse response = this.mockMvc.perform(put("/api/users/add-balance/" + BAD_ID)
+                        .with(user(admin.getUsername()).password(admin.getPassword()).roles(String.valueOf(Role.ADMIN)))
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(addBalanceRequest))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andReturn().getResponse();
+        String error = response.getContentAsString();
+
+        Assertions.assertEquals(String.format(USER_WITH_ID_NOT_FOUND, BAD_ID), error);
+    }
+
+    @Test
+    @Transactional
+    void addBalance_ValidationException_OnAddingZeroBalance() throws Exception {
+        User user = insertUser();
+        BigDecimal amountToAdd = BigDecimal.ZERO;
+        AddBalanceRequest addBalanceRequest = new AddBalanceRequest().setBalance(amountToAdd);
+        MockHttpServletResponse response = this.mockMvc.perform(put("/api/users/add-balance/" + user.getId())
+                        .with(user(user.getUsername()).password(user.getPassword()).roles(String.valueOf(Role.ADMIN)))
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(addBalanceRequest))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andReturn().getResponse();
+        List<String> errors = objectMapper.readValue(response.getContentAsString(), new TypeReference<>() {
+        });
+        Assertions.assertTrue(errors.contains(AMOUNT_TO_ADD_TO_BALANCE_MUST_BE_MORE_THAN_ZERO));
+    }
+
+    @Test
+    @Transactional
+    void addBalance_ValidationException_OnAddingMoreThan1000ToBalance() throws Exception {
+        User user = insertUser();
+        BigDecimal amountToAdd = BigDecimal.valueOf(1001);
+        AddBalanceRequest addBalanceRequest = new AddBalanceRequest().setBalance(amountToAdd);
+        MockHttpServletResponse response = this.mockMvc.perform(put("/api/users/add-balance/" + user.getId())
+                        .with(user(user.getUsername()).password(user.getPassword()).roles(String.valueOf(Role.ADMIN)))
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(addBalanceRequest))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andReturn().getResponse();
+        List<String> errors = objectMapper.readValue(response.getContentAsString(), new TypeReference<>() {
+        });
+        Assertions.assertTrue(errors.contains(AMOUNT_TO_ADD_TO_BALANCE_MUST_BE_LESS_THAN_1000));
+    }
+
+    @Test
+    @Transactional
+    void taxUnsubscribedUsersForRentedBooks_Succeed_OnUserHaving2NotReturnedBooks() {
+        User user = insertUser();
+        BigDecimal balance = BigDecimal.valueOf(10);
+        user.setBalance(balance);
+        user.setSubscription(subscriptionRepository.findById(1L).orElse(null));
+        Book book1 = insertTestBook();
+        Book book2 = insertSecondTestBook();
+        Rent notReturnedRent1 = new Rent()
+                .setBook(book1)
+                .setUser(user)
+                .setRentDate(LocalDate.of(2023, 9, 10))
+                .setActualReturnDate(null)
+                .setExpectedReturnDate(LocalDate.now().minusDays(1));
+        Rent notReturnedRent2 = new Rent()
+                .setBook(book2)
+                .setUser(user)
+                .setRentDate(LocalDate.of(2023, 9, 12))
+                .setActualReturnDate(null)
+                .setExpectedReturnDate(LocalDate.now().minusDays(2));
+        rentRepository.saveAllAndFlush(List.of(notReturnedRent1, notReturnedRent2));
+        user.addRent(notReturnedRent1);
+        user.addRent(notReturnedRent2);
+        userRepository.saveAndFlush(user);
+        userService.taxUnsubscribedUsersForRentedBooks();
+        Assertions.assertEquals(balance.subtract(TAX_PER_BOOK_PER_DAY.multiply(BigDecimal.valueOf(2))).setScale(2), user.getBalance().setScale(2));
+    }
+
+    @Test
+    @Transactional
+    void taxUnsubscribedUsersForRentedBooks_Succeed_OnUserThatHaveReturnedAllOfHisBooks() {
+        User user = insertUser();
+        BigDecimal balance = BigDecimal.valueOf(10);
+        user.setBalance(balance);
+        user.setSubscription(subscriptionRepository.findById(1L).orElse(null));
+        Book book1 = insertTestBook();
+        Book book2 = insertSecondTestBook();
+        Rent notReturnedRent1 = new Rent()
+                .setBook(book1)
+                .setUser(user)
+                .setRentDate(LocalDate.of(2023, 9, 10))
+                .setActualReturnDate(LocalDate.of(2023, 9, 11))
+                .setExpectedReturnDate(LocalDate.now().minusDays(1));
+        Rent notReturnedRent2 = new Rent()
+                .setBook(book2)
+                .setUser(user)
+                .setRentDate(LocalDate.of(2023, 9, 12))
+                .setActualReturnDate(LocalDate.of(2023, 9, 13))
+                .setExpectedReturnDate(LocalDate.now().minusDays(2));
+        rentRepository.saveAllAndFlush(List.of(notReturnedRent1, notReturnedRent2));
+        user.addRent(notReturnedRent1);
+        user.addRent(notReturnedRent2);
+        userRepository.saveAndFlush(user);
+        userService.taxUnsubscribedUsersForRentedBooks();
+        Assertions.assertEquals(balance, user.getBalance());
+    }
+
+    @Test
+    @Transactional
+    void taxUsersOrRemoveSubscriptionAtStartOfMonth_Succeed_UserTaxedForBronzeSubscription() {
+        User user = insertUser();
+        BigDecimal balance = BigDecimal.valueOf(50);
+        Subscription bronze = subscriptionRepository.findById(1L).orElse(null);
+        user.setBalance(balance);
+        user.setSubscription(bronze);
+        userRepository.saveAndFlush(user);
+        userService.taxUsersOrRemoveSubscriptionAtStartOfMonth();
+        Assertions.assertEquals(balance.subtract(bronze.getPrice()), user.getBalance());
+    }
+
+    @Test
+    @Transactional
+    void taxUsersOrRemoveSubscriptionAtStartOfMonth_Succeed_UserTaxedForSilverSubscription() {
+        User user = insertUser();
+        BigDecimal balance = BigDecimal.valueOf(50);
+        Subscription silver = subscriptionRepository.findById(2L).orElse(null);
+        user.setBalance(balance);
+        user.setSubscription(silver);
+        userRepository.saveAndFlush(user);
+        userService.taxUsersOrRemoveSubscriptionAtStartOfMonth();
+        Assertions.assertEquals(balance.subtract(silver.getPrice()), user.getBalance());
+    }
+
+    @Test
+    @Transactional
+    void taxUsersOrRemoveSubscriptionAtStartOfMonth_Succeed_UserTaxedForGoldenSubscription() {
+        User user = insertUser();
+        BigDecimal balance = BigDecimal.valueOf(50);
+        Subscription golden = subscriptionRepository.findById(3L).orElse(null);
+        user.setBalance(balance);
+        user.setSubscription(golden);
+        userRepository.saveAndFlush(user);
+        userService.taxUsersOrRemoveSubscriptionAtStartOfMonth();
+        Assertions.assertEquals(balance.subtract(golden.getPrice()), user.getBalance());
+        Assertions.assertEquals(golden,user.getSubscription());
+    }
+
+    @Test
+    @Transactional
+    void taxUsersOrRemoveSubscriptionAtStartOfMonth_Succeed_UserRemovedSubscription() {
+        User user = insertUser();
+        BigDecimal balance = BigDecimal.valueOf(50);
+        Subscription bronze = subscriptionRepository.findById(1L).orElse(null);
+        user.setBalance(balance);
+        user.setSubscription(bronze);
+        user.setHasUnsubscribed(true);
+        userRepository.saveAndFlush(user);
+        userService.taxUsersOrRemoveSubscriptionAtStartOfMonth();
+        Assertions.assertEquals(balance, user.getBalance());
+        Assertions.assertNull(user.getSubscription());
+        Assertions.assertFalse(user.isHasUnsubscribed());
+    }
+    @Test
+    @Transactional
+    void taxUsersOrRemoveSubscriptionAtStartOfMonth_Succeed_RemoveSubscriptionIfBalanceNotEnough() {
+        User user = insertUser();
+        BigDecimal balance = BigDecimal.valueOf(0);
+        Subscription bronze = subscriptionRepository.findById(1L).orElse(null);
+        user.setBalance(balance);
+        user.setSubscription(bronze);
+        user.setHasUnsubscribed(false);
+        userRepository.saveAndFlush(user);
+        userService.taxUsersOrRemoveSubscriptionAtStartOfMonth();
+        Assertions.assertEquals(balance, user.getBalance());
+        Assertions.assertNull(user.getSubscription());
+        Assertions.assertFalse(user.isHasUnsubscribed());
     }
 }

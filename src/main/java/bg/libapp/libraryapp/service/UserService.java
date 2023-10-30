@@ -33,8 +33,7 @@ import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 
-import static bg.libapp.libraryapp.model.constants.ApplicationConstants.DAYS_IN_MONTH;
-import static bg.libapp.libraryapp.model.constants.ApplicationConstants.TAX_PER_BOOK_PER_DAY;
+import static bg.libapp.libraryapp.model.constants.ApplicationConstants.*;
 
 @Service
 @Transactional
@@ -52,7 +51,7 @@ public class UserService {
     }
 
     public UserDTO save(RegisterUserRequest registerUserRequest) {
-        logger.info("Register user with this data: '" + registerUserRequest + "'");
+        logger.info(REGISTER_USER_WITH_DATA, registerUserRequest);
         existsByUsername(registerUserRequest.getUsername());
         User userToSave = UserMapper.mapToUser(registerUserRequest);
         userToSave.setPassword(passwordEncoder.encode(registerUserRequest.getPassword()));
@@ -61,28 +60,28 @@ public class UserService {
     }
 
     public void existsByUsername(String username) {
-        logger.info("existsByUsername method accessed with username: '" + username + "'");
+        logger.info(EXISTS_BY_USERNAME_METHOD_ACCESSED_WITH_USERNAME, username);
         if (userRepository.existsByUsername(username)) {
-            logger.error("User with this username '" + username + "' was not found!");
+            logger.error(USER_WITH_USERNAME_NOT_FOUND, username);
             throw new UserWithThisUsernameAlreadyExistsException(username);
         }
     }
 
     public UserDTO getUserExtendedDTO(long id) {
-        logger.info("getUserDTOById method accessed with id: '" + id + "'");
+        logger.info(GET_USER_EXTENDED_DTO_METHOD_ACCESSED_WITH_ID, id);
         User user = userRepository.findById(id)
                 .orElseThrow(() -> logAndThrowExceptionForUserNotFound(id));
         return UserMapper.mapToUserExtendedDTO(user);
     }
 
     public User getUserById(long id) {
-        logger.info("getUserById method accessed with id: '" + id + "'");
+        logger.info(GET_USER_BY_ID_METHOD_ACCESSED_WITH_ID, id);
         return userRepository.findById(id)
                 .orElseThrow(() -> logAndThrowExceptionForUserNotFound(id));
     }
 
     public List<UserDTO> getAllUsers() {
-        logger.info("getAllUsers method accessed");
+        logger.info(GET_ALL_USERS_ACCESSED_LOGGER);
         List<User> users = userRepository.findAll();
         return users
                 .stream()
@@ -91,7 +90,7 @@ public class UserService {
     }
 
     public UserDTO editUserAndSave(UpdateUserRequest updateUserRequest, long id) {
-        logger.info("editUserAndSave method accessed with user with id '" + id + "' and params: " + updateUserRequest);
+        logger.info(EDIT_USER_METHOD_ACCESSED_WITH_ID, id, updateUserRequest);
         User oldUser = userRepository.findById(id)
                 .orElseThrow(() -> logAndThrowExceptionForUserNotFound(id));
         editUserWithUpdateUserRequestData(updateUserRequest, oldUser);
@@ -100,17 +99,17 @@ public class UserService {
     }
 
     private UserNotFoundException logAndThrowExceptionForUserNotFound(long id) {
-        logger.info("User with id '" + id + "' was not found!");
+        logger.info(USER_WITH_ID_NOT_FOUND, id);
         return new UserNotFoundException(id);
     }
 
     private UserNotFoundException logAndThrowExceptionForUserNotFound(String username) {
-        logger.info("User with username '" + username + "' was not found!");
+        logger.info(USER_WITH_USERNAME_NOT_FOUND, username);
         return new UserNotFoundException(username);
     }
 
     public UserDTO changeRoleAndSave(ChangeRoleRequest changeRoleRequest, long id) {
-        logger.info("changeRoleAndSave method accessed with user with id '" + id + "'");
+        logger.info(CHANGE_ROLE_METHOD_ACCESSED_WITH_USER_ID, id);
         User oldUser = userRepository.findById(id)
                 .orElseThrow(() -> logAndThrowExceptionForUserNotFound(id));
         oldUser.setRole(changeRoleRequest.getRole());
@@ -119,7 +118,7 @@ public class UserService {
     }
 
     public UserDTO addSubscription(AddSubscriptionRequest addSubscriptionRequest, long id) {
-        logger.info("subscribe method accessed with user with id '" + id + "'");
+        logger.info(SUBSCRIBE_METHOD_ACCESSED_WITH_USER_ID, id);
         User user = userRepository.findById(id)
                 .orElseThrow(() -> logAndThrowExceptionForUserNotFound(id));
 
@@ -185,7 +184,7 @@ public class UserService {
     }
 
     public UserDTO changePasswordAndSave(ChangePasswordRequest changePasswordRequest, long id) {
-        logger.info("changePasswordAndSave method accessed with user with id '" + id + "'");
+        logger.info(CHANGE_PASSWORD_METHOD_ACCESSED_WITH_USER_ID, id);
         User oldUser = userRepository.findById(id)
                 .orElseThrow(() -> logAndThrowExceptionForUserNotFound(id));
         oldUser.setPassword(passwordEncoder.encode(changePasswordRequest.getNewPassword()));
@@ -194,7 +193,7 @@ public class UserService {
     }
 
     public String getUsernameById(long id) {
-        logger.info("getUsernameById method accessed with id '" + id + "'");
+        logger.info(GET_USERNAME_BY_ID_METHOD_ACCESSED_WITH_ID, id);
         return userRepository.findById(id)
                 .orElseThrow(() -> logAndThrowExceptionForUserNotFound(id))
                 .getUsername();
@@ -208,7 +207,7 @@ public class UserService {
     }
 
     public UserDTO deleteUserById(long id) {
-        logger.info("deleteUserById method accessed with id '" + id + "'");
+        logger.info(DELETE_USER_BY_ID_METHOD_ACCESSED_WITH_ID, id);
         User toDelete = userRepository.findById(id)
                 .orElseThrow(() -> logAndThrowExceptionForUserNotFound(id));
         userRepository.deleteById(id);
@@ -216,17 +215,17 @@ public class UserService {
     }
 
     public void logout() {
-        logger.info("Logout current logged in user");
+        logger.info(LOGOUT_CURRENT_LOGGED_IN_USER);
         SecurityContextHolder.getContext().getAuthentication().setAuthenticated(false);
         SecurityContextHolder.clearContext();
     }
 
     public UserDTO deactivateUser(long id) {
-        logger.info("Deactivate user with id '" + id + "'");
+        logger.info(DEACTIVATE_USER_WITH_ID, id);
         User userToEdit = userRepository.findById(id)
                 .orElseThrow(() -> logAndThrowExceptionForUserNotFound(id));
         if (!userToEdit.isActive()) {
-            logger.error("User account must be active in order to be deactivated");
+            logger.error(USER_MUST_BE_ACTIVE_IN_ORDER_TO_BE_DEACTIVATED);
             throw new UserIsAlreadyDeactivatedException(id);
         }
         userToEdit.setActive(false);
@@ -235,11 +234,11 @@ public class UserService {
     }
 
     public UserDTO activateUser(long id) {
-        logger.info("Activate user with id '" + id + "'");
+        logger.info(ACTIVATE_USER_WITH_ID, id);
         User userToEdit = userRepository.findById(id)
                 .orElseThrow(() -> logAndThrowExceptionForUserNotFound(id));
         if (userToEdit.isActive()) {
-            logger.error("User account must be inactive in order to be activated");
+            logger.error(USER_MUST_BE_INACTIVE_IN_ORDER_TO_BE_ACTIVATED);
             throw new UserIsAlreadyActivatedException(id);
         }
         userToEdit.setActive(true);
@@ -248,13 +247,13 @@ public class UserService {
     }
 
     public User getUserByUsername(String username) {
-        logger.info("getUserByUsername method accessed with username '" + username + "'");
+        logger.info(GET_USER_BY_USERNAME_ACCESSED_FOR_USER_WITH_USERNAME, username);
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> logAndThrowExceptionForUserNotFound(username));
     }
 
     public UserDTO addBalanceToUser(AddBalanceRequest addBalanceRequest, long id) {
-        logger.info("addBalanceToUser method accessed with user with id '" + id + "'");
+        logger.info(ADD_BALANCE_ACCESSED_FOR_USER_WITH_ID, id);
         User oldUser = userRepository.findById(id)
                 .orElseThrow(() -> logAndThrowExceptionForUserNotFound(id));
         oldUser.setBalance(addBalanceRequest.getBalance());
@@ -263,7 +262,7 @@ public class UserService {
     }
 
     public UserDTO unsubscribe(long id) {
-        logger.info("unsubscribe method accessed with user with id '" + id + "'");
+        logger.info(UNSUBSCRIBE_METHOD_ACCESSED_FOR_USER_WITH_ID, id);
         User user = userRepository.findById(id)
                 .orElseThrow(() -> logAndThrowExceptionForUserNotFound(id));
         user.setHasUnsubscribed(true);
@@ -272,7 +271,7 @@ public class UserService {
     }
 
     public void taxUsersOrRemoveSubscriptionAtStartOfMonth() {
-        logger.info("taxUsersOrRemoveSubscriptionAtStartOfMonth CRON JOB");
+        logger.info(TAX_USERS_OR_REMOVE_SUBSCRIPTION_CRON_JOB);
         List<User> users = userRepository.findAllBySubscriptionNotNull();
         for (User user : users) {
             if (user.isHasUnsubscribed()) {
@@ -287,8 +286,8 @@ public class UserService {
         }
     }
 
-    public void taxUnsubscribedUsersForRentedBooks() {
-        logger.info("taxUnsubscribedUsersForRentedBooks CRON JOB");
+    public void taxUsersForProlongedRents() {
+        logger.info(TAX_USERS_FOR_PROLONGED_RENTS_CRON_JOB);
         List<User> users = userRepository.findAllByRentActualReturnDateNullAndExpectedReturnDateBeforeNow();
         BigDecimal amountToTax;
         for (User user : users) {
