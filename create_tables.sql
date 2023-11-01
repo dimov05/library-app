@@ -1,6 +1,9 @@
-Create database library_app;
-drop database library_app;
-use library_app;
+Create
+database library_app;
+drop
+database library_app;
+use
+library_app;
 
 CREATE TABLE book
 (
@@ -116,3 +119,12 @@ ALTER TABLE subscription
     add rents_allowed smallint NOT NULL DEFAULT 3;
 ALTER TABLE subscription
     add price DECIMAL NOT NULL DEFAULT 0;
+CREATE TABLE book_import_audit
+(
+    id          BIGINT PRIMARY KEY AUTO_INCREMENT,
+    event_date  TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    is_imported BOOLEAN                             NOT NULL,
+    zip_name    VARCHAR(255) NOT NULL,
+    file_name   VARCHAR(255),
+    message     TEXT NOT NULL
+);

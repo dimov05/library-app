@@ -33,6 +33,7 @@ public class ApplicationConstants {
     public static final String CREATING_EVENT_FOR_UPDATE_DEACTIVATION_REASON_OF_BOOK_LOGGER = "Creating an event for updating deactivation reason of book with params: {}";
     public static final String CREATING_EVENT_FOR_SAVING_NEW_BOOK_LOGGER = "Creating an event for saving a new book with params: {}";
     public static final String CREATING_EVENT_FOR_UPDATE_QUANTITY_OF_BOOK_LOGGER = "Creating an event for updating '{}' quantity of book with params: {}";
+    public static final String CREATING_EVENT_FOR_IMPORTING_XML_FILE_LOGGER = "Creating an event for importing xml file.";
     public static final String UPDATE_TOTAL_QUANTITY_OF_BOOK_WITH_ISBN = "Updated total quantity of book with isbn '{}' and params: {}";
     public static final String THERE_IS_NO_SUCH_DEACTIVATE_REASON = "There is no such a deactivate reason '{}'";
     public static final String DEACTIVATED_BOOK_WITH_ISBN = "Deactivated book with isbn '{}' and params: {}";
@@ -42,7 +43,6 @@ public class ApplicationConstants {
     public static final String UPDATED_YEAR_OF_BOOK_WITH_ISBN = "Updated year of book with isbn '{}' and params: {}";
     public static final String BOOK_WITH_ISBN_IS_ACTIVE_AND_CAN_NOT_BE_DELETED = "Book with isbn '{}' is active and can not be deleted!";
     public static final String BOOK_WITH_ISBN_IS_NOT_ACTIVE = "Book with isbn '{}' is not active!";
-    public static final String BOOK_WITH_ISBN_IS_ALREADY_ADDED = "Book with this isbn is already added";
     public static final String SAVE_NEW_BOOK_WITH_ISBN = "Save a new book with isbn '{}' and params: {}";
     public static final String NO_GENRES_WITH_THIS_NAME = "There are no genres with this name '{}'";
     public static final String CREATED_NEW_RENT_WITH_PARAMS = "Created new rent with params: {}";
@@ -97,5 +97,31 @@ public class ApplicationConstants {
     public static final String MAP_TO_BOOK_DTO_ACCESSED = "mapToBookDTO mapper method called with params {}";
     public static final String MAP_TO_BOOK_EXTENDED_DTO_ACCESSED = "mapToBookExtendedDTO mapper method called with params {}";
     public static final String UPDATE_TOTAL_QUANTITY_METHOD_ACCESSED = "updateTotalQuantity method called with params: isbn={}, {}";
+    public static final String BOOKS_IMPORT_FOLDER_PATH = "src/main/resources/booksToImport";
+    public static final String BOOKS_IMPORTED_FOLDER_PATH = "src/main/resources/importedBooks";
+
+    public static final String ISBN_NOT_BLANK = "isbn should not be blank";
+    public static final String ISBN_INCORRECT_VALUE = "ISBN is invalid";
+    public static final String THIS_ISBN_IS_NOT_VALID = "ISBN %s is not a valid ISBN.";
+    public static final String BOOK_WITH_ISBN_ALREADY_EXISTS = "Book with ISBN %s already exists";
+    public static final String TITLE_NOT_BLANK = "Title should not be blank";
+    public static final String TITLE_LENGTH_VALIDATION = "Title should be between 1 and 150 symbols";
+
+    public static final String YEAR_RANGE_EXCEPTION = "Year should be between 1000 and now";
+    public static final String PUBLISHER_SIZE_EXCEPTION = "Publisher name should be between 1 and 100 symbols";
+    public static final String PUBLISHER_NOT_BLANK_EXCEPTION = "Publisher should not be blank";
+    public static final String BOOK_QUANTITY_LESS_THAN_0 = "Book's total quantity should be equal or more than 0";
+    public static final String THERE_IS_NO_GENRE_WITH_THIS_NAME = "This genre %s is not a valid Genre";
+    public static final String GENRE_NOT_BLANK = "Genre must not be blank";
+    public static final String GENRE_LENGTH_VALIDATION = "Genre length must be at least 2 symbols";
+    public static final String AUTHOR_FIRST_NAME_NOT_EMPTY = "First name can not be empty";
+    public static final String AUTHOR_LAST_NAME_NOT_EMPTY = "Last name can not be empty";
+    public static final String AUTHOR_FIRST_NAME_LENGTH_VALIDATION = "First name should be at least 2 characters";
+    public static final String AUTHOR_LAST_NAME_LENGTH_VALIDATION = "Last name should be at least 2 characters";
+    public static final String ERROR_READING_ZIP_FILE = "Error reading zip file: {}";
+    public static final String REGEX_FOR_10_SYMBOLS_ISBN = "^(?:\\d{9}[\\d|Xx])|(?:\\d{1,5}-\\d{1,7}-\\d{1,6}-[\\d|Xx])$";
+    public static final String REGEX_FOR_13_SYMBOLS_ISBN = "^(?:\\d{12}\\d|[\\d|-]{1,5}-\\d{1,7}-\\d{1,6}-\\d)$";
+
+
 }
 

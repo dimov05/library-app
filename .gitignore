@@ -3,6 +3,10 @@ target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
+**/src/main/resources/booksToImport/*.xml
+**/src/main/resources/booksToImport/*.zip
+**/src/main/resources/importedBooks/*.xml
+**/src/main/resources/importedBooks/*.zip
 
 ### STS ###
 .apt_generated

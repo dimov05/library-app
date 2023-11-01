@@ -49,15 +49,15 @@ public class BookController {
         return new ResponseEntity<>(this.bookService.findBookExtendedDTOByIsbn(isbn), HttpStatus.OK);
     }
 
-
     @GetMapping("")
     public ResponseEntity<Set<BookExtendedDTO>> getAllBooks(@Valid BookFilterRequest bookFilterRequest) {
         return new ResponseEntity<>(bookService.getAllBooks(bookFilterRequest), HttpStatus.OK);
     }
 
+    //@ISBN(type = ISBN.Type.ANY, message = "Invalid isbn")
     @DeleteMapping("/delete/{isbn}")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_MODERATOR')")
-    public ResponseEntity<BookDTO> deleteBookById(@PathVariable("isbn") @ISBN(type = ISBN.Type.ANY, message = "Invalid isbn") String isbn) {
+    public ResponseEntity<BookDTO> deleteBookById(@PathVariable("isbn") String isbn) {
         return new ResponseEntity<>(bookService.deleteByIsbn(isbn), HttpStatus.OK);
     }
 
@@ -83,5 +83,11 @@ public class BookController {
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_MODERATOR')")
     public ResponseEntity<BookDTO> changeBookStatus(@PathVariable("isbn") @ISBN(type = ISBN.Type.ANY, message = "Invalid isbn") String isbn, @Valid @RequestBody BookChangeStatusRequest bookChangeStatusRequest) {
         return new ResponseEntity<>(bookService.changeStatus(isbn, bookChangeStatusRequest), HttpStatus.OK);
+    }
+
+    @PostMapping("/insert-xml")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_MODERATOR')")
+    public ResponseEntity<String> importXmlBooks() {
+        return new ResponseEntity<>(bookService.importXmlBooks(), HttpStatus.OK);
     }
 }

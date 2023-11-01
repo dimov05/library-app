@@ -35,10 +35,14 @@ public class AuthorService {
 
     public Author findOrCreate(AuthorRequest author) {
         logger.info(FIND_OR_CREATE_AUTHOR_ACCESSED_LOGGER, author);
-        return this.authorRepository.findAuthorByFirstNameAndLastName(author.getFirstName(), author.getLastName())
-                .orElse(authorRepository.saveAndFlush(
-                        new Author()
-                                .setFirstName(author.getFirstName())
-                                .setLastName(author.getLastName())));
+        Author authorToReturn = this.authorRepository.findByFirstNameAndLastName(author.getFirstName(), author.getLastName())
+                .orElse(null);
+        if (authorToReturn == null) {
+            authorToReturn = new Author()
+                    .setFirstName(author.getFirstName())
+                    .setLastName(author.getLastName());
+            authorRepository.saveAndFlush(authorToReturn);
+        }
+        return authorToReturn;
     }
 }

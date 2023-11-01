@@ -1502,7 +1502,7 @@ class UserControllerTest extends LibraryAppBaseTest {
         user.addRent(notReturnedRent1);
         user.addRent(notReturnedRent2);
         userRepository.saveAndFlush(user);
-        userService.taxUnsubscribedUsersForRentedBooks();
+        userService.taxUsersForProlongedRents();
         Assertions.assertEquals(balance.subtract(TAX_PER_BOOK_PER_DAY.multiply(BigDecimal.valueOf(2))).setScale(2), user.getBalance().setScale(2));
     }
 
@@ -1531,7 +1531,7 @@ class UserControllerTest extends LibraryAppBaseTest {
         user.addRent(notReturnedRent1);
         user.addRent(notReturnedRent2);
         userRepository.saveAndFlush(user);
-        userService.taxUnsubscribedUsersForRentedBooks();
+        userService.taxUsersForProlongedRents();
         Assertions.assertEquals(balance, user.getBalance());
     }
 

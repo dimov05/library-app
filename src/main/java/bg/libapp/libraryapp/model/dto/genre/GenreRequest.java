@@ -3,9 +3,12 @@ package bg.libapp.libraryapp.model.dto.genre;
 import jakarta.validation.constraints.NotBlank;
 import org.hibernate.validator.constraints.Length;
 
+import static bg.libapp.libraryapp.model.constants.ApplicationConstants.GENRE_LENGTH_VALIDATION;
+import static bg.libapp.libraryapp.model.constants.ApplicationConstants.GENRE_NOT_BLANK;
+
 public class GenreRequest {
-    @NotBlank(message = "Genre must not be blank")
-    @Length(min = 2, message = "Genre length must be at least 2 symbols")
+    @NotBlank(message = GENRE_NOT_BLANK)
+    @Length(min = 2, message = GENRE_LENGTH_VALIDATION)
     private String name;
 
     public GenreRequest() {

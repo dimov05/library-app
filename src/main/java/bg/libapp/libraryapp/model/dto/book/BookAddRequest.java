@@ -2,6 +2,8 @@ package bg.libapp.libraryapp.model.dto.book;
 
 import bg.libapp.libraryapp.model.dto.author.AuthorRequest;
 import bg.libapp.libraryapp.model.dto.genre.GenreRequest;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -12,23 +14,33 @@ import org.hibernate.validator.constraints.Length;
 
 import java.util.Set;
 
+import static bg.libapp.libraryapp.model.constants.ApplicationConstants.*;
+
+@JacksonXmlRootElement
 public class BookAddRequest {
-    @NotBlank(message = "isbn should not be blank")
-    @ISBN(type = ISBN.Type.ANY, message = "ISBN is invalid")
+    @JacksonXmlProperty(localName = "isbn")
+    @NotBlank(message = ISBN_NOT_BLANK)
+    @ISBN(type = ISBN.Type.ANY, message = ISBN_INCORRECT_VALUE)
     private String isbn;
-    @NotBlank(message = "Title should not be blank")
-    @Length(min = 1, max = 150, message = "Title should be between 1 and 150 symbols")
+    @JacksonXmlProperty(localName = "title")
+    @NotBlank(message = TITLE_NOT_BLANK)
+    @Length(min = 1, max = 150, message = TITLE_LENGTH_VALIDATION)
     private String title;
-    @Min(value = 1000, message = "Year should be between 1000 and now")
-    @Max(value = 2100, message = "Year should be between 1000 and now")
+    @JacksonXmlProperty(localName = "year")
+    @Min(value = 1000, message = YEAR_RANGE_EXCEPTION)
+    @Max(value = 2100, message = YEAR_RANGE_EXCEPTION)
     private int year;
-    @NotBlank(message = "Publisher should not be blank")
-    @Length(min = 1, max = 100, message = "Publisher name should be between 1 and 100 symbols")
+    @JacksonXmlProperty(localName = "publisher")
+    @NotBlank(message = PUBLISHER_NOT_BLANK_EXCEPTION)
+    @Length(min = 1, max = 100, message = PUBLISHER_SIZE_EXCEPTION)
     private String publisher;
-    @Min(value = 0, message = "Book's total quantity should be equal or more than 0")
+    @JacksonXmlProperty(localName = "totalQuantity")
+    @Min(value = 0, message = BOOK_QUANTITY_LESS_THAN_0)
     private int totalQuantity;
+    @JacksonXmlProperty(localName = "genres")
     @NotEmpty
     private Set<@Valid GenreRequest> genres;
+    @JacksonXmlProperty(localName = "genres")
     @NotEmpty
     private Set<@Valid AuthorRequest> authors;
 

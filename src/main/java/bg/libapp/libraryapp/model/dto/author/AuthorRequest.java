@@ -3,13 +3,18 @@ package bg.libapp.libraryapp.model.dto.author;
 import jakarta.validation.constraints.NotEmpty;
 import org.hibernate.validator.constraints.Length;
 
+import static bg.libapp.libraryapp.model.constants.ApplicationConstants.AUTHOR_FIRST_NAME_LENGTH_VALIDATION;
+import static bg.libapp.libraryapp.model.constants.ApplicationConstants.AUTHOR_FIRST_NAME_NOT_EMPTY;
+import static bg.libapp.libraryapp.model.constants.ApplicationConstants.AUTHOR_LAST_NAME_LENGTH_VALIDATION;
+import static bg.libapp.libraryapp.model.constants.ApplicationConstants.AUTHOR_LAST_NAME_NOT_EMPTY;
+
 public class AuthorRequest {
-    @NotEmpty(message = "First name can not be empty")
-    @Length(min = 2, message = "First name should be at least 2 characters")
+    @NotEmpty(message = AUTHOR_FIRST_NAME_NOT_EMPTY)
+    @Length(min = 2, message = AUTHOR_FIRST_NAME_LENGTH_VALIDATION)
     private String firstName;
 
-    @NotEmpty(message = "Last name can not be empty")
-    @Length(min = 2, message = "Last name should be at least 2 characters")
+    @NotEmpty(message = AUTHOR_LAST_NAME_NOT_EMPTY)
+    @Length(min = 2, message = AUTHOR_LAST_NAME_LENGTH_VALIDATION)
     private String lastName;
 
     public AuthorRequest() {

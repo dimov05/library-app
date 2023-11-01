@@ -1,5 +1,6 @@
 package bg.libapp.libraryapp.service;
 
+import bg.libapp.libraryapp.event.BookImportAuditEvent;
 import bg.libapp.libraryapp.event.SaveBookAuditEvent;
 import bg.libapp.libraryapp.event.UpdateActiveStatusBookAuditEvent;
 import bg.libapp.libraryapp.event.UpdateDeactivateReasonBookAuditEvent;
@@ -7,6 +8,7 @@ import bg.libapp.libraryapp.event.UpdatePublisherBookAuditEvent;
 import bg.libapp.libraryapp.event.UpdateQuantityBookAuditEvent;
 import bg.libapp.libraryapp.event.UpdateYearBookAuditEvent;
 import bg.libapp.libraryapp.exceptions.CannotProcessJsonOfEntityException;
+import bg.libapp.libraryapp.exceptions.MovingFileException;
 import bg.libapp.libraryapp.exceptions.book.BookAlreadyAddedException;
 import bg.libapp.libraryapp.exceptions.book.BookIsActiveOnDeleteException;
 import bg.libapp.libraryapp.exceptions.book.BookNotActiveException;
@@ -14,6 +16,7 @@ import bg.libapp.libraryapp.exceptions.book.BookNotFoundException;
 import bg.libapp.libraryapp.exceptions.book.NoSuchDeactivateReasonException;
 import bg.libapp.libraryapp.exceptions.genre.GenreNotFoundException;
 import bg.libapp.libraryapp.exceptions.rent.InsufficientTotalQuantityException;
+import bg.libapp.libraryapp.model.dto.author.AuthorRequest;
 import bg.libapp.libraryapp.model.dto.book.BookAddRequest;
 import bg.libapp.libraryapp.model.dto.book.BookChangeStatusRequest;
 import bg.libapp.libraryapp.model.dto.book.BookDTO;
@@ -22,7 +25,9 @@ import bg.libapp.libraryapp.model.dto.book.BookFilterRequest;
 import bg.libapp.libraryapp.model.dto.book.BookUpdatePublisherRequest;
 import bg.libapp.libraryapp.model.dto.book.BookUpdateTotalQuantityRequest;
 import bg.libapp.libraryapp.model.dto.book.BookUpdateYearRequest;
+import bg.libapp.libraryapp.model.dto.genre.GenreRequest;
 import bg.libapp.libraryapp.model.entity.Book;
+import bg.libapp.libraryapp.model.entity.Genre;
 import bg.libapp.libraryapp.model.enums.DeactivateReason;
 import bg.libapp.libraryapp.model.mappers.BookMapper;
 import bg.libapp.libraryapp.repository.BookRepository;
@@ -30,6 +35,7 @@ import bg.libapp.libraryapp.repository.GenreRepository;
 import bg.libapp.libraryapp.specifications.BookSpecifications;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import jakarta.transaction.Transactional;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -37,12 +43,27 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import static bg.libapp.libraryapp.model.constants.ApplicationConstants.*;
 
@@ -55,33 +76,25 @@ public class BookService {
     private final ApplicationEventPublisher eventPublisher;
     private final ObjectMapper objectMapper;
     private final AuthorService authorService;
+    private final XmlMapper xmlMapper;
 
     @Autowired
-    public BookService(BookRepository bookRepository, GenreRepository genreRepository, ApplicationEventPublisher eventPublisher, ObjectMapper objectMapper, AuthorService authorService) {
+    public BookService(BookRepository bookRepository, GenreRepository genreRepository, ApplicationEventPublisher eventPublisher, ObjectMapper objectMapper, AuthorService authorService, XmlMapper xmlMapper) {
         this.bookRepository = bookRepository;
         this.genreRepository = genreRepository;
         this.eventPublisher = eventPublisher;
         this.objectMapper = objectMapper;
         this.authorService = authorService;
+        this.xmlMapper = xmlMapper;
     }
 
     public BookDTO saveNewBook(BookAddRequest bookAddRequest) {
-        String isbnOfBook = bookAddRequest.getIsbn();
-        if (bookRepository.existsByIsbn(isbnOfBook)) {
-            logger.error(BOOK_WITH_ISBN_IS_ALREADY_ADDED);
-            throw new BookAlreadyAddedException(isbnOfBook);
-        }
+        checkIfBookWithThisIsbnIsAlreadyAdded(bookAddRequest);
+        Set<Genre> genres = getGenresFromRequest(bookAddRequest.getGenres());
         Book book = BookMapper.mapToBook(bookAddRequest);
         book.setActive(true);
         book.setAvailableQuantity(book.getTotalQuantity());
-        book.setGenres(bookAddRequest.getGenres()
-                .stream()
-                .map(genre -> this.genreRepository.findByName(genre.getName())
-                        .orElseThrow(() -> {
-                            logger.error(NO_GENRES_WITH_THIS_NAME, genre.getName());
-                            return new GenreNotFoundException(genre.getName());
-                        }))
-                .collect(Collectors.toSet()));
+        book.setGenres(genres);
         book.setAuthors(bookAddRequest.getAuthors()
                 .stream()
                 .map(authorService::findOrCreate)
@@ -90,6 +103,23 @@ public class BookService {
         logger.info(SAVE_NEW_BOOK_WITH_ISBN, bookAddRequest.getIsbn(), bookAddRequest);
         eventPublisher.publishEvent(new SaveBookAuditEvent(book, getJsonOfBook(book)));
         return BookMapper.mapToBookDTO(book);
+    }
+
+    private Set<Genre> getGenresFromRequest(Set<GenreRequest> genres) {
+        return genres.stream().map(genre -> this.genreRepository.findByName(genre.getName())
+                        .orElseThrow(() -> {
+                            logger.error(NO_GENRES_WITH_THIS_NAME, genre.getName());
+                            return new GenreNotFoundException(genre.getName());
+                        }))
+                .collect(Collectors.toSet());
+    }
+
+    private void checkIfBookWithThisIsbnIsAlreadyAdded(BookAddRequest bookAddRequest) {
+        String isbnOfBook = bookAddRequest.getIsbn();
+        if (bookRepository.existsByIsbn(isbnOfBook)) {
+            logger.error(String.format(BOOK_WITH_ISBN_ALREADY_EXISTS, bookAddRequest.getIsbn()));
+            throw new BookAlreadyAddedException(isbnOfBook);
+        }
     }
 
     public BookDTO deleteByIsbn(String isbn) {
@@ -319,5 +349,116 @@ public class BookService {
         if (newValueTotalQuantity < rentedQuantity) {
             throw new InsufficientTotalQuantityException(bookToEdit.getIsbn(), newValueTotalQuantity);
         }
+    }
+
+    public String importXmlBooks() {
+        int importedBooks = 0;
+
+        List<Resource> zipFiles = getAllZipFilesToImport();
+        for (Resource zipFile : zipFiles) {
+            List<BookImportAuditEvent> failEvents = new ArrayList<>();
+            List<BookAddRequest> booksToAdd = new ArrayList<>();
+
+            try (ZipInputStream zipInputStream = new ZipInputStream(zipFile.getInputStream(), StandardCharsets.UTF_8)) {
+                ZipEntry zipEntry = zipInputStream.getNextEntry();
+                while (zipEntry != null) {
+                    if (!zipEntry.isDirectory() && zipEntry.getName().endsWith(".xml")) {
+                        String xmlContent = new BufferedReader(new InputStreamReader(zipInputStream)).lines().collect(Collectors.joining("\n"));
+                        BookAddRequest bookAddRequest = xmlMapper.readValue(xmlContent, BookAddRequest.class);
+                        addBookOnSuccessValidation(zipFile, bookAddRequest, booksToAdd, failEvents, zipEntry);
+                    }
+                    zipEntry = zipInputStream.getNextEntry();
+                }
+                if (failEvents.isEmpty()) {
+                    importedBooks += booksToAdd.size();
+                    booksToAdd.forEach(this::saveNewBook);
+                    eventPublisher.publishEvent(new BookImportAuditEvent(true, zipFile.getFilename(), "All files", String.format("Uploaded %d books", booksToAdd.size())));
+                    moveZipFileOnSuccess(zipFile);
+                } else {
+                    failEvents.forEach(eventPublisher::publishEvent);
+                }
+            } catch (IOException e) {
+                logger.info(ERROR_READING_ZIP_FILE, e.getMessage());
+                eventPublisher.publishEvent(new BookImportAuditEvent(false, zipFile.getFilename(), null, e.getMessage()));
+            }
+        }
+
+        return String.format("Successfully imported %d books", importedBooks);
+    }
+
+    private void addBookOnSuccessValidation(Resource zipFile, BookAddRequest bookAddRequest, List<BookAddRequest> booksToAdd, List<BookImportAuditEvent> failEvents, ZipEntry zipEntry) {
+        List<String> validationsErrors = validateBookAddRequest(bookAddRequest);
+        if (validationsErrors.isEmpty()) {
+            booksToAdd.add(bookAddRequest);
+        } else {
+            String errorMessage = String.join(", ", validationsErrors);
+            failEvents.add(new BookImportAuditEvent(false, zipFile.getFilename(), zipEntry.getName(), errorMessage));
+        }
+    }
+
+    private List<String> validateBookAddRequest(BookAddRequest bookAddRequest) {
+        List<String> errors = new ArrayList<>();
+        String regex10 = REGEX_FOR_10_SYMBOLS_ISBN;
+        String regex13 = REGEX_FOR_13_SYMBOLS_ISBN;
+        Pattern pattern10 = Pattern.compile(regex10);
+        Pattern pattern13 = Pattern.compile(regex13);
+        if (!pattern10.matcher(regex10).matches() && pattern13.matcher(regex13).matches()) {
+            errors.add(String.format(THIS_ISBN_IS_NOT_VALID, bookAddRequest.getIsbn()));
+        }
+        if (bookAddRequest.getTitle().isBlank() || bookAddRequest.getTitle().length() > 150) {
+            errors.add(TITLE_LENGTH_VALIDATION);
+        }
+        if (bookAddRequest.getYear() < 1000 || bookAddRequest.getYear() > 2100) {
+            errors.add(YEAR_RANGE_EXCEPTION);
+        }
+        if (bookAddRequest.getPublisher().isBlank() || bookAddRequest.getPublisher().length() > 100) {
+            errors.add(PUBLISHER_SIZE_EXCEPTION);
+        }
+        if (bookAddRequest.getTotalQuantity() < 0) {
+            errors.add(BOOK_QUANTITY_LESS_THAN_0);
+        }
+        if (bookRepository.existsByIsbn(bookAddRequest.getIsbn())) {
+            errors.add(String.format(BOOK_WITH_ISBN_ALREADY_EXISTS, bookAddRequest.getIsbn()));
+        }
+
+        for (GenreRequest genre : bookAddRequest.getGenres()) {
+            if (genre.getName().isBlank() || genre.getName().length() < 2 || genreRepository.findByName(genre.getName()).isEmpty()) {
+                errors.add(String.format(THERE_IS_NO_GENRE_WITH_THIS_NAME, genre.getName()));
+            }
+        }
+        for (AuthorRequest author : bookAddRequest.getAuthors()) {
+            if (author.getFirstName().isEmpty() || author.getFirstName().length() < 2) {
+                errors.add(AUTHOR_FIRST_NAME_LENGTH_VALIDATION);
+            }
+            if (author.getLastName().isEmpty() || author.getLastName().length() < 2) {
+                errors.add(String.format(AUTHOR_LAST_NAME_LENGTH_VALIDATION));
+            }
+        }
+
+        return errors;
+    }
+
+    private static void moveZipFileOnSuccess(Resource zipFile) {
+        try {
+            Path sourcePath = Paths.get(zipFile.getURI());
+            Path targetPath = Paths.get(BOOKS_IMPORTED_FOLDER_PATH, sourcePath.getFileName().toString());
+            Files.move(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            throw new MovingFileException(zipFile.getFilename(), e.getMessage());
+        }
+    }
+
+    private List<Resource> getAllZipFilesToImport() {
+        List<Resource> zips = new ArrayList<>();
+        File folderImports = new File(BOOKS_IMPORT_FOLDER_PATH);
+        File[] files = folderImports.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isFile() && file.getName().endsWith(".zip")) {
+                    zips.add(new FileSystemResource(file));
+                }
+            }
+        }
+        return zips;
     }
 }
