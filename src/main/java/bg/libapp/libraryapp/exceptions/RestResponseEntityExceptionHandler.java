@@ -16,8 +16,13 @@ import bg.libapp.libraryapp.exceptions.rent.RentNotFoundException;
 import bg.libapp.libraryapp.exceptions.rent.UserHasProlongedRentsException;
 import bg.libapp.libraryapp.exceptions.rent.UserNotEligibleToRentException;
 import bg.libapp.libraryapp.exceptions.rent.UserRentedMaximumAllowedBooksException;
+import bg.libapp.libraryapp.exceptions.user.NotEnoughBalanceToReturnBook;
+import bg.libapp.libraryapp.exceptions.user.NotEnoughBalanceToStartSubscriptionException;
+import bg.libapp.libraryapp.exceptions.user.UserCannotDowngradeOnHavingMoreRentsThanAllowed;
+import bg.libapp.libraryapp.exceptions.user.UserDoesNotHaveSubscriptionException;
 import bg.libapp.libraryapp.exceptions.user.UserIsAlreadyActivatedException;
 import bg.libapp.libraryapp.exceptions.user.UserIsAlreadyDeactivatedException;
+import bg.libapp.libraryapp.exceptions.user.UserIsAlreadyWithThisSubscription;
 import bg.libapp.libraryapp.exceptions.user.UserNotFoundException;
 import bg.libapp.libraryapp.exceptions.user.UserWithThisUsernameAlreadyExistsException;
 import org.hibernate.exception.ConstraintViolationException;
@@ -34,7 +39,7 @@ public class RestResponseEntityExceptionHandler
         extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(value
-            = {IllegalArgumentException.class, IsbnNotValidException.class, BookIsActiveOnDeleteException.class, IllegalStateException.class, UserRentedMaximumAllowedBooksException.class, RentAlreadyReturnedException.class, UserHasProlongedRentsException.class, UserNotEligibleToRentException.class, CannotRentBookTwiceException.class, InsufficientAvailableQuantityException.class, InsufficientTotalQuantityException.class, NoSuchDeactivateReasonException.class, BookNotActiveException.class, UserWithThisUsernameAlreadyExistsException.class, BookAlreadyAddedException.class, UserIsAlreadyActivatedException.class, UserIsAlreadyDeactivatedException.class})
+            = {IllegalArgumentException.class, UserCannotDowngradeOnHavingMoreRentsThanAllowed.class, NotEnoughBalanceToReturnBook.class, UserIsAlreadyWithThisSubscription.class, NotEnoughBalanceToStartSubscriptionException.class, UserDoesNotHaveSubscriptionException.class, IsbnNotValidException.class, BookIsActiveOnDeleteException.class, IllegalStateException.class, UserRentedMaximumAllowedBooksException.class, RentAlreadyReturnedException.class, UserHasProlongedRentsException.class, UserNotEligibleToRentException.class, CannotRentBookTwiceException.class, InsufficientAvailableQuantityException.class, InsufficientTotalQuantityException.class, NoSuchDeactivateReasonException.class, BookNotActiveException.class, UserWithThisUsernameAlreadyExistsException.class, BookAlreadyAddedException.class, UserIsAlreadyActivatedException.class, UserIsAlreadyDeactivatedException.class})
     protected ResponseEntity<Object> handleConflict(
             RuntimeException ex, WebRequest request) {
         String bodyOfResponse = ex.getMessage();

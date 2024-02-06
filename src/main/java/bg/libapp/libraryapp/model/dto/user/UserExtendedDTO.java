@@ -2,6 +2,7 @@ package bg.libapp.libraryapp.model.dto.user;
 
 import bg.libapp.libraryapp.model.dto.rent.RentDTO;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -49,7 +50,7 @@ public class UserExtendedDTO extends UserDTO {
         return this;
     }
 
-    public UserExtendedDTO setDateOfBirth(LocalDate dateOfBirth) {
+    public UserExtendedDTO setDateOfBirth(String dateOfBirth) {
         super.setDateOfBirth(dateOfBirth);
         return this;
     }
@@ -69,5 +70,15 @@ public class UserExtendedDTO extends UserDTO {
         return "{" +
                 "rents=" + rents +
                 '}';
+    }
+
+    public UserExtendedDTO setSubscription(String subscription) {
+        super.setSubscription(subscription);
+        return this;
+    }
+
+    public UserExtendedDTO setBalance(String balance) {
+        super.setBalance(balance);
+        return this;
     }
 }

@@ -39,7 +39,7 @@ public class BookAuditService {
         event.setNewValue(String.valueOf(event.getBook().getYear()));
         event.setOperationType(AuditEnum.UPDATE);
         event.setFieldName(YEAR);
-        logger.info("Creating an event for updating year of book with params: " + event);
+        logger.info(CREATING_EVENT_FOR_UPDATE_YEAR_OF_BOOK_LOGGER, event);
         bookAuditRepository.saveAndFlush(BookAuditMapper.mapToBookAudit(event));
     }
 
@@ -51,7 +51,7 @@ public class BookAuditService {
             event.setNewValue(String.valueOf(event.getBook().getAvailableQuantity()));
         }
         event.setOperationType(AuditEnum.UPDATE);
-        logger.info("Creating an event for updating '" + event.getFieldName() + "' quantity of book with params: " + event);
+        logger.info(CREATING_EVENT_FOR_UPDATE_QUANTITY_OF_BOOK_LOGGER, event.getFieldName(), event);
         bookAuditRepository.saveAndFlush(BookAuditMapper.mapToBookAudit(event));
     }
 
@@ -60,14 +60,14 @@ public class BookAuditService {
         event.setNewValue(String.valueOf(event.getBook().getPublisher()));
         event.setOperationType(AuditEnum.UPDATE);
         event.setFieldName(PUBLISHER);
-        logger.info("Creating an event for updating publisher of book with params: " + event);
+        logger.info(CREATING_EVENT_FOR_UPDATE_PUBLISHER_OF_BOOK_LOGGER, event);
         bookAuditRepository.saveAndFlush(BookAuditMapper.mapToBookAudit(event));
     }
 
     public void saveBook(SaveBookAuditEvent event) {
         event.setUser(getUserForAudit());
         event.setNewValue(event.getNewValue());
-        logger.info("Creating an event for saving a new book with params: " + event);
+        logger.info(CREATING_EVENT_FOR_SAVING_NEW_BOOK_LOGGER, event);
         event.setOperationType(AuditEnum.ADD);
         bookAuditRepository.saveAndFlush(BookAuditMapper.mapToBookAudit(event));
     }
@@ -77,7 +77,7 @@ public class BookAuditService {
         event.setNewValue(String.valueOf(event.getBook().isActive()));
         event.setOperationType(AuditEnum.UPDATE);
         event.setFieldName(IS_ACTIVE);
-        logger.info("Creating an event for updating status of book with params: " + event);
+        logger.info(CREATING_EVENT_FOR_UPDATE_STATUS_OF_BOOK_LOGGER, event);
         bookAuditRepository.saveAndFlush(BookAuditMapper.mapToBookAudit(event));
     }
 
@@ -86,14 +86,14 @@ public class BookAuditService {
         event.setNewValue(String.valueOf(event.getBook().getDeactivateReason()));
         event.setOperationType(AuditEnum.UPDATE);
         event.setFieldName(DEACTIVATE_REASON);
-        logger.info("Creating an event for updating status of book with params: " + event);
+        logger.info(CREATING_EVENT_FOR_UPDATE_DEACTIVATION_REASON_OF_BOOK_LOGGER, event);
         bookAuditRepository.saveAndFlush(BookAuditMapper.mapToBookAudit(event));
     }
 
     private User getUserForAudit() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         return userRepository.findByUsername(username).orElseThrow(() -> {
-            logger.info("User with username '" + username + "' was not found!");
+            logger.info(USER_WITH_USERNAME_NOT_FOUND,username);
             return new UsernameNotFoundException(username);
         });
     }

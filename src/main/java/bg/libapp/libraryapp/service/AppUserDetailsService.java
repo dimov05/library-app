@@ -13,7 +13,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.util.Collections;
 
-import static bg.libapp.libraryapp.model.constants.ApplicationConstants.USER_WITH_USERNAME_NOT_FOUND;
+import static bg.libapp.libraryapp.model.constants.ApplicationConstants.LOGGING_USER_WITH_USERNAME;
+import static bg.libapp.libraryapp.model.constants.ApplicationConstants.USER_WITH_USERNAME_NOT_FOUND_STRING_FORMAT;
 
 
 public class AppUserDetailsService implements UserDetailsService {
@@ -26,13 +27,13 @@ public class AppUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        logger.info("Logging user with this username '" + username + "'");
+        logger.info(LOGGING_USER_WITH_USERNAME, username);
         return this.userRepository
                 .findByUsername(username)
                 .map(this::mapUserToUserDetails)
                 .orElseThrow(() -> {
-                    logger.info(String.format(USER_WITH_USERNAME_NOT_FOUND, username));
-                    return new UsernameNotFoundException(String.format(USER_WITH_USERNAME_NOT_FOUND, username));
+                    logger.info(String.format(USER_WITH_USERNAME_NOT_FOUND_STRING_FORMAT, username));
+                    return new UsernameNotFoundException(String.format(USER_WITH_USERNAME_NOT_FOUND_STRING_FORMAT, username));
                 });
     }
 

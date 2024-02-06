@@ -9,6 +9,7 @@ import bg.libapp.libraryapp.repository.AuthorRepository;
 import bg.libapp.libraryapp.repository.BookRepository;
 import bg.libapp.libraryapp.repository.GenreRepository;
 import bg.libapp.libraryapp.repository.RentRepository;
+import bg.libapp.libraryapp.repository.SubscriptionRepository;
 import bg.libapp.libraryapp.repository.UserRepository;
 import bg.libapp.libraryapp.service.AuthorService;
 import bg.libapp.libraryapp.service.BookService;
@@ -22,17 +23,24 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static bg.libapp.libraryapp.Constants.*;
+import static bg.libapp.libraryapp.model.constants.ApplicationConstants.DAYS_IN_MONTH;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @ExtendWith(SpringExtension.class)
 public class LibraryAppBaseTest {
+    @Autowired
+    protected SubscriptionRepository subscriptionRepository;
     @Autowired
     protected PasswordEncoder passwordEncoder;
     @Autowired
@@ -157,6 +165,34 @@ public class LibraryAppBaseTest {
                 .setYear(YEAR));
     }
 
+    protected Book insertFifthTestBook() {
+        return bookRepository.save(new Book()
+                .setIsbn("0-8894-1820-9")
+                .setActive(true)
+                .setAvailableQuantity(QUANTITY)
+                .setTotalQuantity(QUANTITY)
+                .setTitle("Test book 5")
+                .setAuthors(insertSetOfTestAuthors())
+                .setDateAdded(DATETIME_BOOK)
+                .setGenres(getGenresFromDatabase())
+                .setPublisher("Kose")
+                .setYear(YEAR));
+    }
+
+    protected Book insertSixthTestBook() {
+        return bookRepository.save(new Book()
+                .setIsbn("0-7060-5736-8")
+                .setActive(true)
+                .setAvailableQuantity(QUANTITY)
+                .setTotalQuantity(QUANTITY)
+                .setTitle("Test book 6")
+                .setAuthors(insertSetOfTestAuthors())
+                .setDateAdded(DATETIME_BOOK)
+                .setGenres(getGenresFromDatabase())
+                .setPublisher("Kose")
+                .setYear(YEAR));
+    }
+
     private Set<Genre> getGenresFromDatabase() {
         Set<Genre> genres = new HashSet<>();
         Genre genreOne = genreRepository.findById(1L).orElse(null);
@@ -170,12 +206,15 @@ public class LibraryAppBaseTest {
         return userRepository.save(
                 new User()
                         .setActive(true)
+                        .setSubscription(subscriptionRepository.findById(BRONZE_ID).orElse(null))
                         .setFirstName("User")
+                        .setHasUnsubscribed(false)
                         .setLastName("Userov")
                         .setUsername("userUser")
                         .setPassword(passwordEncoder.encode(USER_PASSWORD))
                         .setDisplayName("UserUserov")
                         .setRole(0)
+                        .setBalance(BigDecimal.ZERO)
                         .setDateOfBirth(LocalDate.of(2000, 5, 6))
                         .setRents(new ArrayList<>())
         );
@@ -191,6 +230,8 @@ public class LibraryAppBaseTest {
                         .setPassword(passwordEncoder.encode(USER_PASSWORD))
                         .setDisplayName("UserUserov")
                         .setRole(0)
+                        .setBalance(BigDecimal.ZERO)
+                        .setSubscription(subscriptionRepository.findById(BRONZE_ID).orElse(null))
                         .setDateOfBirth(LocalDate.of(2000, 5, 6))
                         .setRents(new ArrayList<>())
         );
@@ -206,6 +247,8 @@ public class LibraryAppBaseTest {
                         .setPassword(passwordEncoder.encode(USER_PASSWORD))
                         .setDisplayName("UserUserov2")
                         .setRole(0)
+                        .setBalance(BigDecimal.ZERO)
+                        .setSubscription(subscriptionRepository.findById(BRONZE_ID).orElse(null))
                         .setDateOfBirth(LocalDate.of(2000, 5, 6))
                         .setRents(new ArrayList<>())
         );
@@ -221,6 +264,8 @@ public class LibraryAppBaseTest {
                         .setPassword(passwordEncoder.encode(ADMIN_PASSWORD))
                         .setDisplayName("AdminAdminov")
                         .setRole(2)
+                        .setBalance(BigDecimal.ZERO)
+                        .setSubscription(subscriptionRepository.findById(BRONZE_ID).orElse(null))
                         .setDateOfBirth(LocalDate.of(2000, 5, 6))
                         .setRents(new ArrayList<>())
         );
@@ -237,5 +282,49 @@ public class LibraryAppBaseTest {
                 .setGenres(getGenresFromDatabase())
                 .setPublisher("Ciela")
                 .setYear(YEAR);
+    }
+
+    protected int getDaysTillEndOfMonth() {
+        LocalDate currentDate = LocalDate.now();
+        LocalDate lastDayOfMonth = currentDate.with(TemporalAdjusters.lastDayOfMonth());
+        return currentDate.until(lastDayOfMonth).getDays();
+    }
+
+    protected BigDecimal calculateAmountTillEndOfMount(int daysTillEndOfMonth, BigDecimal price) {
+        return BigDecimal.valueOf(daysTillEndOfMonth)
+                .divide(BigDecimal.valueOf(DAYS_IN_MONTH), 3, RoundingMode.CEILING)
+                .multiply(price);
+    }
+
+    protected List<Rent> initRents(User user, List<Book> books) {
+        List<Rent> rents = new ArrayList<>();
+        for (Book book : books) {
+            rents.add(insertRentForBookAndUser(book, user));
+        }
+        return rents;
+    }
+
+    protected List<Book> initThreeBooks() {
+        Book book1 = insertTestBook();
+        Book book2 = insertSecondTestBook();
+        Book book3 = insertThirdTestBook();
+        return List.of(book1, book2, book3);
+    }
+
+    protected List<Book> initFourBooks() {
+        Book book1 = insertTestBook();
+        Book book2 = insertSecondTestBook();
+        Book book3 = insertThirdTestBook();
+        Book book4 = insertFourthTestBook();
+        return List.of(book1, book2, book3, book4);
+    }
+
+    protected List<Book> initFiveBooks() {
+        Book book1 = insertTestBook();
+        Book book2 = insertSecondTestBook();
+        Book book3 = insertThirdTestBook();
+        Book book4 = insertFourthTestBook();
+        Book book5 = insertFifthTestBook();
+        return List.of(book1, book2, book3, book4, book5);
     }
 }
